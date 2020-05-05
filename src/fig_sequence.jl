@@ -2,7 +2,7 @@ using Revise
 using SwitchingAnalysis
 
 # loading
-streaks =  CSV.read(joinpath(files_dir,"streaks.csv"); types = col_types) |> DataFrame
+streaks =  CSV.read(joinpath(files_dir,"streaks.csv"); types = columns_types) |> DataFrame
 pokes =  CSV.read(joinpath(files_dir,"pokes.csv")) |> DataFrame
 ##
 filter!(r-> !ismissing(r.Protocol) &&
@@ -14,6 +14,7 @@ Df = by(streaks,:Phase) do dd
     prepare_df(dd,:Protocol,:Num_Rewards)
 end
 plot(rand(10))
+Df.color = get.(color_dict,Df.Phase,RGB(0,0,0))
 @df Df groupedbar(:Xaxis, :Mean,
     group = :Phase,
     yerror = :SEM,
@@ -28,8 +29,3 @@ with_err = prepare_df(streaks,:Num_pokes,ecdf)
 @df with_err plot(:Xaxis, :Mean;
     ribbon = :SEM)
 ##
-using Colors
-colormap("RdBu",7)
-colormap("D5")
-palette(:tab10)
-palette([:purple, :green], 6)[1]

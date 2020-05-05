@@ -3,7 +3,7 @@ module SwitchingAnalysis
 using Reexport
 @reexport using DataFrames, CSV, StatsBase, StatsPlots
 
-export files_dir, col_types
+export files_dir, columns_types, color_dict
 export prepare_df
 export Prew
 export dropnan, dropnan!
