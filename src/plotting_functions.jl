@@ -1,4 +1,4 @@
-function prepare_df(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :MouseID)
+function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :MouseID)
     ErrGroups = vcat(Xvar,Err)
     XaxisGroups = vcat(Xvar)
     pre_err = by(dd, ErrGroups) do df
@@ -10,9 +10,9 @@ function prepare_df(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mous
     rename(with_err, Xvar=>:Xaxis)
 end
 
-function prepare_df(dd::AbstractDataFrame,Xvar::Symbol,f::Function; Err = :MouseID)
+function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
     pre_err = by(dd, Err) do df
-        F = f(df[:,Xvar])
+        F = ecdf(df[:,Xvar])
         (AN = F(F.sorted_values),Xaxis = F.sorted_values)
     end
     pre_err = flatten(pre_err,:AN)

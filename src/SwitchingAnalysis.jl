@@ -4,9 +4,9 @@ using Reexport
 @reexport using DataFrames, CSV, StatsBase, StatsPlots
 
 export files_dir, figs_dir, columns_types, drug_colors, protocol_colors
-export prepare_df
+export summarize
 export Prew
-export dropnan, dropnan!
+export dropnan, dropnan!, Protocol_colors!
 
 include("constants.jl")
 include("plotting_functions.jl")
