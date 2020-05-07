@@ -11,6 +11,10 @@ const drug_colors = Dict(
     "Methysergide" => RGB(0.1725,0.6275,0.1725),
     "Way_100135" => RGB(1.0,0.498,0.0549),
     "training" => RGB(0.498,0.498,0.498),
+    "PreVehicle" => RGB(0.498,0.498,0.498),
+    "PostVehicle" => RGB(0.498,0.498,0.498),
+    "Saline" => RGB(0.498,0.498,0.498),
+    "None" => RGB(0.498,0.498,0.498),
     )
 
 const protocol_colors = Dict(

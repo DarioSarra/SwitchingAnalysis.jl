@@ -58,3 +58,13 @@ function Protocol_colors!(df)
     df[!,:color] = [get(protocol_colors,x,RGB(0,0,0)) for x in df.env]
     return df
 end
+
+function Drug_colors!(df)
+    if :Phase in names(df)
+        c = :Phase
+    elseif :Treatment in names(df)
+        c = :Treatment
+    end
+    df[!,:color] = [get(drug_colors,x,RGB(0,0,0)) for x in df[:,c]]
+    return df
+end
