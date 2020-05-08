@@ -59,7 +59,7 @@ savefig(joinpath(figs_loc,"ProtocolsDecay.pdf"))
 
 ## Cumulative per protocol
 
-Df = by(streaks,:Protocol) do dd
+Df = combine(groupby(streaks,:Protocol)) do dd
     ecdf(dd,:Num_pokes)
 end
 Protocol_colors!(Df)
@@ -72,7 +72,7 @@ savefig(joinpath(figs_loc,"CumulativePokesPerProtocol.pdf"))
 
 ## Pokes per protocol by phase
 
-Df = by(streaks,:Phase) do dd
+Df = combine(groupby(streaks,:Phase)) do dd
     summarize(dd,:Protocol,:Num_pokes)
 end
 Drug_colors!(Df)
@@ -85,7 +85,7 @@ savefig(joinpath(figs_loc,"BarPokesPerPhase.pdf"))
 
 ## Pokes per protocol by Treatment
 
-Df = by(streaks,:Treatment) do dd
+Df = combine(groupby(streaks,:Treatment)) do dd
     summarize(dd,:Protocol,:Num_pokes)
 end
 filter!(r->!in(r.Treatment,["None","PostVehicle","Saline"]), Df)
@@ -100,7 +100,7 @@ savefig(joinpath(figs_loc,"BarPokesPerProtocolandInj.pdf"))
 
 ## PreVehicle data
 control = filter(r-> r.Treatment == "PreVehicle", streaks)
-Df = by(control,:Protocol) do dd
+Df = combine(groupby(control,:Protocol)) do dd
     ecdf(dd,:Num_pokes)
 end
 Protocol_colors!(Df)
@@ -121,10 +121,17 @@ sort!(Df,:Protocol)
     legend = false)
 savefig(joinpath(figs_loc,"PreVehPokesPerProtocol.pdf"))
 
-##
+## Add Instantenous reward rate
+p =  dropmissing(pokes, disallowmissing = true)
+p[!,:PokeDur] = p.PokeOut .- p.PokeIn
+@df filter(r -> r.PokeDur < 0.5, p) density(:PokeDur,
+    xticks  = 0:0.05:1)
+filter!(r -> r.PokeDur > 0.199,p)
+gd = groupby(p, [:Day,:MouseID,:Trial])
+transform!(gd,:Reward => Pnext => :Pnextrew)
+p[!,:InstRewRate] = p.Pnextrew ./ p.PokeDur
+open_html_table(p[1:50,[:Protocol,:Trial,:Reward,:PokeDur,:Pnextrew,:InstRewRate]])
+@df p density(:PokeDur)
+
 obs = [true,true,false]
 Pnext(obs)
-[1,2,3] + [4,5,6]
-[6,10,12] ./ [3,5,6]
-
-Pnext2(obs)
