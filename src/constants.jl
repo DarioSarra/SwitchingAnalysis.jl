@@ -1,5 +1,8 @@
-const files_dir = "/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/Pharmacology/SwitchingData/Results"
-const figs_dir = "/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/Pharmacology/SwitchingData/Results/figures/"
+const mac_gdrive = "/Volumes/GoogleDrive/My Drive"
+const linux_gdrive = "/home/beatriz/mainen.flipping.5ht@gmail.com"
+const files_dir = "Flipping/Datasets/Pharmacology/SwitchingData/Results"
+const figs_dir = "Flipping/Datasets/Pharmacology/SwitchingData/Results/figures/"
+
 const columns_types = Dict(
     :Protocol => Union{String,Missing},
     )

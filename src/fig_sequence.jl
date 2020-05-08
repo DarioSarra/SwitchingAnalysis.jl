@@ -2,14 +2,18 @@ using Revise
 using SwitchingAnalysis
 using BrowseTables
 # loading
-streaks =  CSV.read(joinpath(files_dir,"streaks.csv"); types = columns_types) |> DataFrame
-pokes =  CSV.read(joinpath(files_dir,"pokes.csv")) |> DataFrame
+#Pkg.add(PackageSpec(name="Example", version="0.3"))
+ongoing_dir = linux_gdrive
+ongoing_dir = mac_gdrive
+files_loc = joinpath(ongoing_dir,files_dir)
+figs_loc = joinpath(ongoing_dir,figs_dir)
+streaks =  CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types) |> DataFrame
+pokes =  CSV.read(joinpath(files_loc,"pokes.csv")) |> DataFrame
 #open_html_table(streaks)
 
 ##
-
 union(streaks[:,:ExpDay])
-gd = by(streaks,:ExpDay) do dd
+gd = combine(groupby(streaks,:ExpDay)) do dd
     (day = dd[1,:Day], phase = dd[1,:Phase],
     treatment = dd[1,:Treatment], inj = dd[1,:Injection],
     PhaseDay = dd[1,:ProtocolDay])
@@ -31,7 +35,8 @@ filter!(r-> !ismissing(r.Protocol) &&
 ## Reward per protocol
 
 gr(size=(600,600), tick_orientation = :out, grid = false)
-Df = by(streaks,:Phase) do dd
+
+Df = combine(groupby(streaks,:Phase)) do dd
     summarize(dd,:Protocol,:Num_Rewards)
 end
 Drug_colors!(Df)
@@ -40,7 +45,7 @@ Drug_colors!(Df)
     yerror = :SEM,
     color = :color,
     legend = :topleft)
-savefig(joinpath(figs_dir,"RewardsPerProtocol.pdf"))
+savefig(joinpath(figs_loc,"RewardsPerProtocol.pdf"))
 
 ## Protocols Decay
 
@@ -50,7 +55,7 @@ Protocol_colors!(Df)
     group = :env, color = :color)
 @df Df scatter!(:Poke, :Prew,
     group = :env, color = :color)
-savefig(joinpath(figs_dir,"ProtocolsDecay.pdf"))
+savefig(joinpath(figs_loc,"ProtocolsDecay.pdf"))
 
 ## Cumulative per protocol
 
@@ -63,7 +68,7 @@ Protocol_colors!(Df)
     ribbon = :SEM,
     legend= :bottomright,
     color = :color)
-savefig(joinpath(figs_dir,"CumulativePokesPerProtocol.pdf"))
+savefig(joinpath(figs_loc,"CumulativePokesPerProtocol.pdf"))
 
 ## Pokes per protocol by phase
 
@@ -76,7 +81,7 @@ Drug_colors!(Df)
     yerror = :SEM,
     color = :color,
     legend = false)
-savefig(joinpath(figs_dir,"BarPokesPerPhase.pdf"))
+savefig(joinpath(figs_loc,"BarPokesPerPhase.pdf"))
 
 ## Pokes per protocol by Treatment
 
@@ -91,7 +96,7 @@ Drug_colors!(Df)
     color = :color,
     legend = :topleft,
     ylims = (0,21))
-savefig(joinpath(figs_dir,"BarPokesPerProtocolandInj.pdf"))
+savefig(joinpath(figs_loc,"BarPokesPerProtocolandInj.pdf"))
 
 ## PreVehicle data
 control = filter(r-> r.Treatment == "PreVehicle", streaks)
@@ -104,7 +109,7 @@ Protocol_colors!(Df)
     ribbon = :SEM,
     legend= :bottomright,
     color = :color)
-savefig(joinpath(figs_dir,"CumulativePreVeh.pdf"))
+savefig(joinpath(figs_loc,"CumulativePreVeh.pdf"))
 Df = summarize(control,:Protocol,:Num_pokes)
 rename!(Df,:Xaxis => :Protocol)
 Protocol_colors!(Df)
@@ -114,7 +119,7 @@ sort!(Df,:Protocol)
     color = :color,
     yticks = 0:15,
     legend = false)
-savefig(joinpath(figs_dir,"PreVehPokesPerProtocol.pdf"))
+savefig(joinpath(figs_loc,"PreVehPokesPerProtocol.pdf"))
 
 ##
 obs = [true,true,false]

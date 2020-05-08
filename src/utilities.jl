@@ -33,7 +33,7 @@ end
 
 function dropnan!(df::AbstractDataFrame,
                       cols=:)
-    deleterows!(df, (!).(complete_vals(df, cols)))
+    delete!(df, (!).(complete_vals(df, cols)))
     df
 end
 
@@ -60,10 +60,12 @@ function Protocol_colors!(df)
 end
 
 function Drug_colors!(df)
-    if :Phase in names(df)
+    if :Phase in propertynames(df)
         c = :Phase
-    elseif :Treatment in names(df)
+    elseif :Treatment in propertynames(df)
         c = :Treatment
+    else
+        error("didn't find any color to map")
     end
     df[!,:color] = [get(drug_colors,x,RGB(0,0,0)) for x in df[:,c]]
     return df

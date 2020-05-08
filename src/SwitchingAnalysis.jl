@@ -3,7 +3,7 @@ module SwitchingAnalysis
 using Reexport
 @reexport using DataFrames, CSV, StatsBase, StatsPlots
 
-export files_dir, figs_dir, columns_types, drug_colors, protocol_colors
+export mac_gdrive, linux_gdirve, files_dir, figs_dir, columns_types, drug_colors, protocol_colors
 export summarize
 export Prew, Poutcome, Pobservations, Pprotocol, Pnext
 export Pobservations_lastval, Pprotocol_lastval, Pnext_lastval
