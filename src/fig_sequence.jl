@@ -1,16 +1,14 @@
 using Revise
 using SwitchingAnalysis
+using HypothesisTests
 using BrowseTables
-# loading
-#Pkg.add(PackageSpec(name="Example", version="0.3"))
+## loading
 ongoing_dir = linux_gdrive
-ongoing_dir = mac_gdrive
+#ongoing_dir = mac_gdrive
 files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
 streaks =  CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types) |> DataFrame
 pokes =  CSV.read(joinpath(files_loc,"pokes.csv")) |> DataFrame
-#open_html_table(streaks)
-
 ##
 union(streaks[:,:ExpDay])
 gd = combine(groupby(streaks,:ExpDay)) do dd
@@ -20,7 +18,14 @@ gd = combine(groupby(streaks,:ExpDay)) do dd
 end
 open_html_table(gd)
 
-##
+## Adjustments
+
+pokes[!,:Protocol] = [ismissing(x) ? missing : string(x) for x in pokes[:,:Protocol]]
+filter!(r-> !ismissing(r.Protocol) &&
+    r.ExpDay > 5 &&
+    r.Protocol in ["0.5","0.75","1.0"] &&
+    r.Trial < 60,
+    pokes)
 
 filter!(r-> !ismissing(r.Protocol) &&
     r.ExpDay >5 &&
@@ -28,34 +33,7 @@ filter!(r-> !ismissing(r.Protocol) &&
     r.Trial < 60 &&
     r.Num_pokes > 1,
     streaks)
-    #&&
-   #r.Num_Rewards > 0,
-
-
-## Reward per protocol
-
 gr(size=(600,600), tick_orientation = :out, grid = false)
-
-Df = combine(groupby(streaks,:Phase)) do dd
-    summarize(dd,:Protocol,:Num_Rewards)
-end
-Drug_colors!(Df)
-@df Df groupedbar(:Xaxis, :Mean,
-    group = :Phase,
-    yerror = :SEM,
-    color = :color,
-    legend = :topleft)
-savefig(joinpath(figs_loc,"RewardsPerProtocol.pdf"))
-
-## Protocols Decay
-
-Df = Prew(1:20)
-Protocol_colors!(Df)
-@df Df plot(:Poke, :Prew,
-    group = :env, color = :color)
-@df Df scatter!(:Poke, :Prew,
-    group = :env, color = :color)
-savefig(joinpath(figs_loc,"ProtocolsDecay.pdf"))
 
 ## Cumulative per protocol
 
@@ -82,6 +60,20 @@ Drug_colors!(Df)
     color = :color,
     legend = false)
 savefig(joinpath(figs_loc,"BarPokesPerPhase.pdf"))
+
+## Pokes in training
+
+control = filter(r-> r.Phase == "training", streaks)
+Df = summarize(control,:Protocol,:Num_pokes)
+rename!(Df,:Xaxis => :Protocol)
+Protocol_colors!(Df)
+sort!(Df,:Protocol)
+@df Df bar(:Protocol, :Mean;
+    yerror = :SEM,
+    color = :color,
+    yticks = 0:15,
+    legend = false)
+savefig(joinpath(figs_loc,"TrainingPokesPerProtocol.pdf"))
 
 ## Pokes per protocol by Treatment
 
@@ -121,17 +113,8 @@ sort!(Df,:Protocol)
     legend = false)
 savefig(joinpath(figs_loc,"PreVehPokesPerProtocol.pdf"))
 
-## Add Instantenous reward rate
-p =  dropmissing(pokes, disallowmissing = true)
-p[!,:PokeDur] = p.PokeOut .- p.PokeIn
-@df filter(r -> r.PokeDur < 0.5, p) density(:PokeDur,
-    xticks  = 0:0.05:1)
-filter!(r -> r.PokeDur > 0.199,p)
-gd = groupby(p, [:Day,:MouseID,:Trial])
-transform!(gd,:Reward => Pnext => :Pnextrew)
-p[!,:InstRewRate] = p.Pnextrew ./ p.PokeDur
-open_html_table(p[1:50,[:Protocol,:Trial,:Reward,:PokeDur,:Pnextrew,:InstRewRate]])
-@df p density(:PokeDur)
 
-obs = [true,true,false]
-Pnext(obs)
+
+## Preward at leaving
+
+streaks
