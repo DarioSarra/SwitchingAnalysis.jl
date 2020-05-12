@@ -33,13 +33,9 @@ streaks = filter(r-> !ismissing(r.Protocol) &&
     fullS)
 
 ## Interpoke interval
-start, stop = round.(quantile(pokes[:,:Pre_Interpoke],[0.025,0.975]), digits = 3)
-start
-stop
-0.01 in range(start,stop; step =0.001)
-0.09 in start:0.001:stop
-conf_ints(pokes[:,:Pre_Interpoke])
-p = filter(r->r.Pre_Interpoke < 0.25,pokes)
+p = trim_conf_ints(pokes,:Pre_Interpoke)
+c = copy(pokes)
+
 @df p density(:Pre_Interpoke)
 k = KDensity(p[:,:Pre_Interpoke])
 plot(k.x,k.density)

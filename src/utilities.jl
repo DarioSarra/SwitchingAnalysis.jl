@@ -71,6 +71,8 @@ function Drug_colors!(df)
     return df
 end
 
+## calculate the extrema to filter the data out of the 95% of the distribution
+
 function conf_ints(v)
     round.(quantile(v,[0.025,0.975]), digits = 3)
 end
