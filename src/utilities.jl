@@ -70,3 +70,24 @@ function Drug_colors!(df)
     df[!,:color] = [get(drug_colors,x,RGB(0,0,0)) for x in df[:,c]]
     return df
 end
+
+function conf_ints(v)
+    round.(quantile(v,[0.025,0.975]), digits = 3)
+end
+
+function trim_conf_ints(v)
+    lower, upper = conf_ints(v)
+    [lower < x < upper for x in v]
+end
+
+function trim_conf_ints(df::AbstractDataFrame,x::Symbol)
+    v = df[:,x]
+    idxs = trim_conf_ints(v)
+    df[idxs,:]
+end
+
+function trim_conf_ints!(df::AbstractDataFrame,x::Symbol)
+    v = df[:,x]
+    idxs = trim_conf_ints(v)
+    delete!(df,Not(idxs))
+end
