@@ -59,9 +59,15 @@ Protocol_colors!(Df)
 savefig(joinpath(figs_loc,"Fig2/B_RewardsPerProtocol.pdf"))
 
 ##
-
-MVT(pokes)
-
+p = filter(r-> !ismissing(r.Protocol) &&
+    r.ExpDay > 5 &&
+    r.Protocol in ["0.5","0.75","1.0"] &&
+    r.Treatment == "PreVehicle" &&
+    r.Trial < 100,# &&
+    #r.Phase == "training",
+    fullP)
+MVT(p)
+savefig(joinpath(figs_loc,"Fig2/try_MVT_100trials.pdf"))
 
 ## Add Instantenous reward rate
 
