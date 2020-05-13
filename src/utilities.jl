@@ -73,23 +73,42 @@ end
 
 ## calculate the extrema to filter the data out of the 95% of the distribution
 
-function conf_ints(v)
-    round.(quantile(v,[0.025,0.975]), digits = 3)
+function conf_ints(vec; mode = :extrema, percent = 95)
+    v = jump_missing(vec)
+    p = (100 - percent) / 100
+    if mode == :extrema
+        p_half = p/2
+        lower, upper = round.(quantile(v,[p_half,1-p_half]), digits = 3)
+    elseif mode == :left
+        lower = round.(quantile(v,p), digits = 3)
+        upper = round(maximum(v), digits = 3) +1
+    elseif mode == :right
+        lower = round(minimum(v), digits = 3) -1
+        upper = round.(quantile(v,1-p), digits = 3)
+    else
+        error("unknown confidence intervals mode")
+    end
+    return [lower,upper]
 end
 
-function trim_conf_ints(v)
-    lower, upper = conf_ints(v)
-    [lower < x < upper for x in v]
+function trim_conf_ints(v; mode = :extrema, percent = 95)
+    lower, upper = conf_ints(v; mode = mode, percent = percent)
+    [ismissing(x) ? true : lower <= x <= upper for x in v]
 end
 
-function trim_conf_ints(df::AbstractDataFrame,x::Symbol)
+function trim_conf_ints(df::AbstractDataFrame,x::Symbol; mode = :extrema, percent = 95)
     v = df[:,x]
-    idxs = trim_conf_ints(v)
+    idxs = trim_conf_ints(v; mode = mode, percent = percent)
     df[idxs,:]
 end
 
-function trim_conf_ints!(df::AbstractDataFrame,x::Symbol)
+function trim_conf_ints!(df::AbstractDataFrame,x::Symbol; mode = :extrema, percent = 95)
     v = df[:,x]
-    idxs = trim_conf_ints(v)
+    idxs = trim_conf_ints(v; mode = mode, percent = percent)
     delete!(df,Not(idxs))
+end
+
+function jump_missing(v::AbstractVector)
+    res = v[map(!,ismissing.(v))]
+    disallowmissing(res)
 end
