@@ -26,7 +26,7 @@ function trim_dist(df::AbstractDataFrame,x::Symbol; p_limit = 0.01)
     df[idxs,:]
 end
 
-function trim_dist!(df::AbstractDataFrame,x::Symbol; p_limit =0.01)
+function trim_dist!(df::AbstractDataFrame,x::Symbol; p_limit = 0.01)
     v = df[:,x]
     idxs = trim_dist(v; p_limit = p_limit)
     delete!(df,Not(idxs))

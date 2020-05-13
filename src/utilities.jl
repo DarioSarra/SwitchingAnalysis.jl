@@ -112,3 +112,7 @@ function jump_missing(v::AbstractVector)
     res = v[map(!,ismissing.(v))]
     disallowmissing(res)
 end
+
+function jump_NaN(v::AbstractVector)
+    res = v[map(!,isnan.(v))]
+end

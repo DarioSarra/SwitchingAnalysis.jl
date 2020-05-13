@@ -7,7 +7,9 @@ function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mouse
     with_err = combine(groupby(pre_err,XaxisGroups)) do df
         (Mean = mean(df.Mean), SEM = sem(df.Mean))
     end
-    rename(with_err, Xvar=>:Xaxis)
+    rename!(with_err, Xvar=>:Xaxis)
+    sort!(with_err,:Xaxis)
+    filter!(r -> !isnan(r.SEM), with_err)
 end
 
 function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
@@ -26,9 +28,17 @@ function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
 end
 
 function MVT(df::AbstractDataFrame)
+    # gd = groupby(df,[:Phase,:MouseID,:Day,:Trial])
+    # Rrate = combine(:InstRewRate => x -> (Leaving = x[end], Average = mean(jump_missing(x))),gd)
+    # res = combine(groupby(Rrate,[:MouseID,:Phase]),:Leaving => mean, :Average => mean)
+
     gd = groupby(df,[:Phase,:MouseID,:Day,:Trial])
-    Rrate = combine(:InstRewRate => x -> (Leaving = x[end], Average = mean(x)),gd)
-    res = combine(groupby(Rrate,[:MouseID,:Phase]),:Leaving => mean, :Average => mean)
+    Rrate = combine([:InstRewRate, :Reward] => (i,r) -> (Leaving = i[end],
+        Average = mean(jump_missing(i)),
+        Reward = r[end]),gd)
+    filter!(r -> !r.Reward, Rrate)
+    gd = groupby(Rrate,[:MouseID,:Phase])
+    res = combine([:Leaving,:Average] => (l,a) ->(Leaving_mean = mean(jump_missing(l)), Average_mean = mean(jump_NaN(a))), gd)
     plot([MVT_scatter(subdf) for subdf in groupby(res,:Phase)]...)
 end
 

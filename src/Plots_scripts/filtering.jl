@@ -27,8 +27,8 @@ disallowmissing!(pokes, :Reward)
 # computing the probability of next poke to be a reward and instanteneous reward rate
 gd = groupby(pokes, [:Day,:MouseID,:Trial])
 transform!(gd,:Reward => Pnext => :Pnextrew)
-pokes[!,:InstRewRate] = pokes.Pnextrew ./ pokes.PokeDuration
-# dropmissing!(fullS)
+poke_time = [ismissing(i) ? d : i+d for (i,d) in zip( pokes.Pre_Interpoke, pokes.PokeDuration)]
+pokes[!,:InstRewRate] = pokes.Pnextrew ./ poke_time
 
 ## Process trials dataframe
 
@@ -39,17 +39,9 @@ streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Inject
 #= Filter dataset cutting the 5th percentile tail (either bilaterally or to the right extreme)
 if filtering results skewed a filter for values with a probability lower than 0.99 is applied =#
 
-@df pokes density(jump_missing(:Pre_Interpoke))
-p = trim_conf_ints(pokes,:Pre_Interpoke)
-@df p density(jump_missing(:Pre_Interpoke))
-@df pokes density(:PokeDuration)
-trim_conf_ints!(p,:PokeDuration)
-@df p density(:PokeDuration)
-@df streaks density(jump_missing(:Pre_Interpoke))
-s = trim_conf_ints(streaks,:Pre_Interpoke; mode = :right)
-@df s density(jump_missing(:Pre_Interpoke))
-s = trim_dist(streaks,:Pre_Interpoke)
-@df s density(jump_missing(:Pre_Interpoke))
-@df streaks density(:Num_pokes)
-s = trim_conf_ints(s, :Num_pokes, mode = :right)
-@df s density(:Num_pokes)
+trim_conf_ints!(pokes,:Pre_Interpoke)
+trim_conf_ints!(pokes,:PokeDuration)
+
+trim_dist!(streaks,:Pre_Interpoke)
+trim_conf_ints!(streaks, :Num_pokes, mode = :right)
+trim_conf_ints!(streaks,:Trial)
