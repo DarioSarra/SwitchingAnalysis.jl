@@ -1,7 +1,7 @@
 module SwitchingAnalysis
 
 using Reexport
-@reexport using DataFrames, CSV, StatsBase, StatsPlots, KernelDensity
+@reexport using DataFrames, CSV, StatsBase, StatsPlots, KernelDensity, HypothesisTests
 using GLM
 
 export mac_gdrive, linux_gdrive, files_dir, figs_dir, columns_types

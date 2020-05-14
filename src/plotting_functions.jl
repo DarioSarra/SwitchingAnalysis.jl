@@ -12,7 +12,7 @@ function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mouse
     filter!(r -> !isnan(r.SEM), with_err)
 end
 
-function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
+function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode = :sem)
     common_xaxis = ecdf(dd[:,Xvar]).sorted_values #new
     pre_err = combine(groupby(dd, Err)) do df
         F = ecdf(df[:,Xvar])
@@ -20,11 +20,19 @@ function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
         (AN = F(common_xaxis),Xaxis = common_xaxis) #new
     end
     pre_err = flatten(pre_err,:AN) #results retrn in a vector within a cell
-
-    with_err = combine(groupby(pre_err,:Xaxis)) do df
-        (Mean = mean(df.AN), SEM = sem(df.AN))
+    if mode == :sem
+        with_err = combine(groupby(pre_err,:Xaxis)) do df
+            (Mean = mean(df.AN), SEM = sem(df.AN))
+        end
+        sort!(with_err,:Xaxis)
+    elseif mode == :conf_int    
+        with_err = combine(groupby(pre_err,:Xaxis)) do df
+            ci = confint(OneSampleTTest(df.AN))
+            (Mean = mean(df.AN), SEMlow = ci[1], SEMup = ci[2])
+        end
+        with_err[!,:SEM] = [(low,up) for (low,up) in zip(with_err.SEMlow,with_err.SEMup)]
+        sort!(with_err,:Xaxis)
     end
-    sort!(with_err,:Xaxis)
     #dropnan!(with_err)
     return with_err
 end

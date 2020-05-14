@@ -48,7 +48,12 @@ if filtering results skewed a filter for values with a probability lower than 0.
 
 trim_conf_ints!(pokes,:Pre_Interpoke)
 trim_conf_ints!(pokes,:PokeDuration)
-
-trim_dist!(streaks,:Pre_Interpoke)
-trim_conf_ints!(streaks, :Num_pokes, mode = :right)
 trim_conf_ints!(streaks,:Trial)
+#= the distribution of number of pokes before leaving results bimodal;
+    with early leaving seaprated from the rest. Analysis on trials
+    are therefore performed with at least 2 or more pokes before leaving=#
+filter!(r-> 1< r.Num_pokes < 31, streaks)
+trim_conf_ints!(streaks, :Num_pokes; percent = 99)
+##
+# @df streaks density(:Num_pokes)
+# @df trim_conf_ints(streaks, :Num_pokes) density(:Num_pokes)

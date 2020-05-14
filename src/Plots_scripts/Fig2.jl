@@ -79,7 +79,6 @@ ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
 savefig(joinpath(figs_loc,"Fig2/D2reward_rate.pdf"))
 ## Cumulative pokes before leaving
-
 Df = combine(groupby(streaks,[:Treatment,:Protocol])) do dd
     ecdf(dd,:Num_pokes)
 end

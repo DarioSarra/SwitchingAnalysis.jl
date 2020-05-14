@@ -60,10 +60,10 @@ function Protocol_colors!(df)
 end
 
 function Drug_colors!(df)
-    if :Phase in propertynames(df)
-        c = :Phase
-    elseif :Treatment in propertynames(df)
+    if :Treatment in propertynames(df)
         c = :Treatment
+    elseif :Phase in propertynames(df)
+        c = :Phase
     else
         error("didn't find any color to map")
     end
@@ -72,6 +72,7 @@ function Drug_colors!(df)
 end
 
 ## calculate the extrema to filter the data out of the 95% of the distribution
+conf95(v) = quantile(v,[0.25,0.975])
 
 function conf_ints(vec; mode = :extrema, percent = 95)
     v = jump_missing(vec)
