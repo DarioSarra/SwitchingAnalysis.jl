@@ -32,6 +32,9 @@ MVT(pokes)
 savefig(joinpath(figs_loc,"Fig2/D1reward_rate.pdf"))
 MVT(pokes; group =:Phase)
 savefig(joinpath(figs_loc,"Fig2/Phase_reward_rate.pdf"))
+p = filter(r-> r.Trial <30,pokes)
+MVT(p)
+savefig(joinpath(figs_loc,"Fig2/MVT30.pdf"))
 ## Marginal value theorem bar plot
 gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Trial])
 Rrate = combine(:InstRewRate => i -> (Leaving = i[end],
