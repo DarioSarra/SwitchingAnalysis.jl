@@ -25,3 +25,17 @@ const protocol_colors = Dict(
     "Med." => RGB(242/255,151/255,37/255),
     "Low" => RGB(221/255,43/255,41/255),
     )
+
+const Treatment_ord = [
+    "None",
+    "Saline",
+    "PostVehicle",
+    "PreVehicle",
+    "Altanserin",
+    "SB242084",
+    "Way_100135",
+    "Methysergide",
+    "Citalopram"
+]
+
+const Treatment_dict = Dict(x=>i for (i,x) in enumerate(Treatment_ord))

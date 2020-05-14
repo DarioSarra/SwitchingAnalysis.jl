@@ -28,18 +28,16 @@ function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
 end
 
 function MVT(df::AbstractDataFrame)
-    # gd = groupby(df,[:Phase,:MouseID,:Day,:Trial])
-    # Rrate = combine(:InstRewRate => x -> (Leaving = x[end], Average = mean(jump_missing(x))),gd)
-    # res = combine(groupby(Rrate,[:MouseID,:Phase]),:Leaving => mean, :Average => mean)
-
-    gd = groupby(df,[:Phase,:MouseID,:Day,:Trial])
+    gd = groupby(df,[:Treatment,:MouseID,:Day,:Trial])
     Rrate = combine([:InstRewRate, :Reward] => (i,r) -> (Leaving = i[end],
         Average = mean(jump_missing(i)),
         Reward = r[end]),gd)
-    filter!(r -> !r.Reward, Rrate)
-    gd = groupby(Rrate,[:MouseID,:Phase])
+    #filter!(r -> !r.Reward, Rrate)
+    gd = groupby(Rrate,[:MouseID,:Treatment])
     res = combine([:Leaving,:Average] => (l,a) ->(Leaving_mean = mean(jump_missing(l)), Average_mean = mean(jump_NaN(a))), gd)
-    plot([MVT_scatter(subdf) for subdf in groupby(res,:Phase)]...)
+    tp = [MVT_scatter(subdf) for subdf in groupby(res,:Treatment)]
+    ord = [1,5,4,2,7,9,8,6,3]
+    plot(tp[ord]...)
 end
 
 function MVT_scatter(toplot::AbstractDataFrame)
@@ -48,7 +46,7 @@ function MVT_scatter(toplot::AbstractDataFrame)
     else
         mdl = lm(@formula(Leaving_mean ~ Average_mean),toplot)
         a,b = round.(coeftable(mdl).cols[1],digits = 3)
-        label =  toplot[1,:Phase]
+        label =  toplot[1,:Treatment]
         plt = @df toplot scatter(:Average_mean,:Leaving_mean,
             xlims = (0,1),
             ylims = (0,1),
