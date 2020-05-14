@@ -27,9 +27,16 @@ disallowmissing!(pokes, :Reward)
 # computing the probability of next poke to be a reward and instanteneous reward rate
 gd = groupby(pokes, [:Day,:MouseID,:Trial])
 transform!(gd,:Reward => Pnext => :Pnextrew)
+# calculate time interval from previous poke out to current poke out
 poke_time = [ismissing(i) ? d : i+d for (i,d) in zip( pokes.Pre_Interpoke, pokes.PokeDuration)]
 pokes[!,:InstRewRate] = pokes.Pnextrew ./ poke_time
-
+#calculate elapsed time and cumulative reward from the first poke in
+gd = groupby(pokes, [:Day,:MouseID])
+transform!(gd,[:PokeIn,:PokeOut,] => (i,o) -> o .- i[1])
+rename!(pokes, :PokeIn_PokeOut_function => :ElapsedTime)
+transform!(gd,:Reward => cumsum => :Cumulative_Reward)
+# calculate average reward rate for each poke cumulative reward / elapsed time
+pokes[!,:AverageRewRate] = 1 ./ (pokes.ElapsedTime ./ pokes.Cumulative_Reward)
 ## Process trials dataframe
 
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd

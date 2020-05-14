@@ -12,7 +12,7 @@ export process_streaks
 export dropnan, dropnan!, Protocol_colors!, Drug_colors!, jump_missing, jump_NaN
 export conf_ints, trim_conf_ints, trim_conf_ints!
 export KDensity, trim_dist, trim_dist!
-export summarize, MVT, MVT_scatter
+export summarize, MVT, MVT_scatter, MVT_meanInstRew
 
 include("constants.jl")
 include("process_streaks.jl")

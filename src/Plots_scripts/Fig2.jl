@@ -30,7 +30,8 @@ savefig(joinpath(figs_loc,"Fig2/B_RewardsPerProtocol.pdf"))
 ## Marginal value theorem scatter plot
 MVT(pokes)
 savefig(joinpath(figs_loc,"Fig2/D1reward_rate.pdf"))
-
+MVT(pokes; group =:Phase)
+savefig(joinpath(figs_loc,"Fig2/Phase_reward_rate.pdf"))
 ## Marginal value theorem bar plot
 gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Trial])
 Rrate = combine(:InstRewRate => i -> (Leaving = i[end],
@@ -53,6 +54,27 @@ ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
 savefig(joinpath(figs_loc,"Fig2/D2reward_rate.pdf"))
 
+## Marginal value theorem bar plot
+gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Trial])
+Rrate = combine(:InstRewRate => i -> (Leaving = i[end],
+    Average = mean(jump_missing(i))),gd)
+df1 = stack(Rrate,[:Leaving,:Average])
+rename!(df1, [:variable => :Rate_on, :value => :InstRewRate])
+df2 = combine(groupby(df1,[:Treatment])) do dd
+    summarize(dd,:Rate_on,:InstRewRate)
+end
+Drug_colors!(df2)
+gd = groupby(df2,:Treatment)
+tp = [@df subdf bar(string.(:Xaxis), :Mean,
+        xlabel = :Treatment[1],
+        yerror = :SEM,
+        ylims = (0,0.7),
+        color = :color,
+        label = false,
+        yaxis = "Rewards rate") for subdf in gd]
+ord = [1,5,4,2,7,9,8,6,3]
+plot(tp[ord]...)
+savefig(joinpath(figs_loc,"Fig2/D2reward_rate.pdf"))
 ## Cumulative pokes before leaving
 
 Df = combine(groupby(streaks,[:Treatment,:Protocol])) do dd
