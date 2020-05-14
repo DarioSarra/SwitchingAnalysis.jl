@@ -13,17 +13,19 @@ function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mouse
 end
 
 function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID)
+    common_xaxis = ecdf(dd[:,Xvar]).sorted_values #new
     pre_err = combine(groupby(dd, Err)) do df
         F = ecdf(df[:,Xvar])
-        (AN = F(F.sorted_values),Xaxis = F.sorted_values)
+        #(AN = F(F.sorted_values),Xaxis = F.sorted_values) #old
+        (AN = F(common_xaxis),Xaxis = common_xaxis) #new
     end
-    pre_err = flatten(pre_err,:AN)
+    pre_err = flatten(pre_err,:AN) #results retrn in a vector within a cell
 
     with_err = combine(groupby(pre_err,:Xaxis)) do df
         (Mean = mean(df.AN), SEM = sem(df.AN))
     end
     sort!(with_err,:Xaxis)
-    dropnan!(with_err)
+    #dropnan!(with_err)
     return with_err
 end
 
