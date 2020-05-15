@@ -1,15 +1,27 @@
-function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :MouseID)
+function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :MouseID , mode = :sem)
     ErrGroups = vcat(Xvar,Err)
     XaxisGroups = vcat(Xvar)
     pre_err = combine(groupby(dd, ErrGroups)) do df
         (Mean = mean(df[:,Yvar]),)
     end
-    with_err = combine(groupby(pre_err,XaxisGroups)) do df
-        (Mean = mean(df.Mean), SEM = sem(df.Mean))
+    if mode == :sem
+        with_err = combine(groupby(pre_err,XaxisGroups)) do df
+            (Mean = mean(df.Mean), SEM = sem(df.Mean))
+        end
+        rename!(with_err, Xvar=>:Xaxis)
+        sort!(with_err,:Xaxis)
+        filter!(r -> !isnan(r.SEM), with_err)
+    elseif mode == :conf
+        with_err = combine(groupby(pre_err,XaxisGroups)) do df
+            ci = confint(OneSampleTTest(df.Mean))
+            m = mean(df.Mean)
+            (Mean = m, ERRlow = m - ci[1], ERRup = ci[2] - m)
+        end
+        with_err[!,:ERR] = [(low,up) for (low,up) in zip(with_err.ERRlow,with_err.ERRup)]
+        rename!(with_err, Xvar=>:Xaxis)
+        sort!(with_err,:Xaxis)
     end
-    rename!(with_err, Xvar=>:Xaxis)
-    sort!(with_err,:Xaxis)
-    filter!(r -> !isnan(r.SEM), with_err)
+    return with_err
 end
 
 function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode = :sem)
@@ -22,21 +34,38 @@ function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode
     pre_err = flatten(pre_err,:AN) #results retrn in a vector within a cell
     if mode == :sem
         with_err = combine(groupby(pre_err,:Xaxis)) do df
-            (Mean = mean(df.AN), SEM = sem(df.AN))
+            (Mean = mean(df.AN), ERR = sem(df.AN))
         end
         sort!(with_err,:Xaxis)
-    elseif mode == :conf_int    
+    elseif mode == :conf
         with_err = combine(groupby(pre_err,:Xaxis)) do df
             ci = confint(OneSampleTTest(df.AN))
-            (Mean = mean(df.AN), SEMlow = ci[1], SEMup = ci[2])
+            m = mean(df.AN)
+            (Mean = m, ERRlow = m - ci[1], ERRup = ci[2] - m)
         end
-        with_err[!,:SEM] = [(low,up) for (low,up) in zip(with_err.SEMlow,with_err.SEMup)]
+        with_err[!,:ERR] = [(low,up) for (low,up) in zip(with_err.ERRlow,with_err.ERRup)]
         sort!(with_err,:Xaxis)
     end
     #dropnan!(with_err)
     return with_err
 end
 
+function effect_size(df::AbstractDataFrame,Effectvar::Symbol,Yvar::Symbol; Err = :MouseID, baseline = nothing)
+    if length(union(df[:,Effectvar])) != 2
+        error("Effect variable has more than 2 levels")
+    end
+    if baseline == nothing
+        baseline = sort(union(sort(df[:,Effectvar])))[end]
+    end
+    gd = groupby(df,[Effectvar,Err])
+    df1 = combine(Yvar => mean => :Mean,gd)
+    df2 = unstack(df1,Effectvar,:Mean)
+    manipulation = filter(x -> x != baseline ,union(df[:,Effectvar]))[1]
+    df2[!,:Effect] = df2[:,Symbol(manipulation)] - df2[:,Symbol(baseline)]
+    df2[!, :Calculation] .= string(manipulation," - ", baseline)
+    deletecols!(df2,[Symbol(manipulation), Symbol(baseline)])
+    return df2
+end
 
 function MVT_scatter(toplot::AbstractDataFrame; group = :Treatment)
     if !in("Average_mean",names(toplot))

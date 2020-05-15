@@ -26,6 +26,14 @@ const protocol_colors = Dict(
     "Low" => RGB(221/255,43/255,41/255),
     )
 
+const color_series = [
+    RGB(0.6,0.149,0.561),
+    RGB(0.902,0.604,0.737),
+    RGB(0.1216,0.4667,0.7059),
+    RGB(0.1725,0.6275,0.1725),
+    RGB(1.0,0.498,0.0549),
+]
+
 const Treatment_ord = [
     "None",
     "Saline",
