@@ -7,7 +7,7 @@ list = ["PreVehicle",
     "Methysergide",
     "Citalopram"]
 s = filter(r->r.Treatment in list &&
-    r.Trial < 61,
+    r.Trial < 31,
     streaks)
 
 ## number of pokes before leaving
@@ -34,35 +34,46 @@ note = plot(xlims = (0,0.5), ylims = (0,0.5), annotations = (0.25,0.25,
 plot(vcat(tp[ord],note)...)
 savefig(joinpath(figs_loc,"Fig3/CumNumPokes.pdf"))
 
-## Delta pokes per trial
-
-gd = groupby(s,:Phase)
-df1 = combine(gd) do dd
-    effect_size(dd,:Treatment,:Num_pokes; baseline = "PreVehicle")
+#savefig(joinpath(figs_loc,"Fig3/DeltaNumPokes.pdf"))
+## Signed rank test
+df1 = combine(groupby(s,[:Phase, :Treatment, :MouseID])) do dd
+    (NumPokes = mean(dd[:,:Num_pokes]),)
 end
-df1[:,:Position] = [get(Treatment_dict, x, "unknown") for x in df1[:,:Phase]]
-sort!(df1,[:Position,:MouseID])
-@df df1 scatter(:Phase, :Effect,
-    color = :grey,
-    markeralpha = 0.5)
-gd1 = groupby(df1,:Phase)
-df2 = combine(gd1) do dd
-        ci = confint(OneSampleTTest(jump_missing(dd[:,:Effect])))
-        m = mean(jump_missing(dd[:,:Effect]))
-        (Mean = m,
-        ErrLow = m - ci[1],
-        ErrUp = ci[2] -m)
-    end
-df2.Err = [(low,up) for (low,up) in zip(df2.ErrLow, df2.ErrUp)]
-df2[:,:Position] = [get(Treatment_dict, x, "unknown") for x in df2[:,:Phase]]
-sort!(df2,[:Position])
-Drug_colors!(df2)
-@df df2 scatter!(:Phase,:Mean,
-    yerr = :Err,
+
+
+df2 = combine(groupby(df1,:Phase)) do dd
+    subdf = unstack(dd,:Treatment,:NumPokes)
+    current_drug = Symbol(subdf[1,:Phase])
+    rename!(subdf, current_drug => :Drug)
+    dropmissing!(subdf)
+end
+
+df3 = combine(groupby(df2,:Phase)) do dd
+    (Effect = mean(dd.Drug - dd.PreVehicle),
+    Wilcoxon = SignedRankTest(dd.Drug,dd.PreVehicle))
+end
+
+df3[!,:Median] = [t.median for t in df3[:,:Wilcoxon]]
+df3[!,:Values] = [t.vals for t in df3[:,:Wilcoxon]]
+df3[!,:CI] = [(t.median - confint(t)[1], confint(t)[2] - t.median) for t in df3[:,:Wilcoxon]]
+df3[!,:P] = [pvalue(t) for t in df3[:,:Wilcoxon]]
+Drug_colors!(df3)
+df3[!,:Pos] = [get(Treatment_dict,x,10) for x in df3[:,:Phase]]
+sort!(df3,:Pos)
+df4 = flatten(df3,:Values)
+@df df4 scatter(:Phase, :Values, color = :grey,
+    markeralpha = 0.4,
+    markercolor = :grey)
+Plots.abline!(0,0,color = :black, linestyle = :dash)
+@df df3 scatter!(:Phase,:Median,
     color = :color,
     linecolor = :black,
+    markerstrokecolor = :black,
+    linewidth = 10,
+    yerror = :CI,
     markersize = 10,
-    label  = false)
-Plots.abline!(0,0,color = :black)
-savefig(joinpath(figs_loc,"Fig3/DeltaNumPokes.pdf"))
+    legend = false,
+    ylabel = "Signed rank test - median and c.i.",
+    xlabel = "Treatment")
 ##
+savefig(joinpath(figs_loc,"Fig3/WilcoxonSignedRankTest.pdf"))
