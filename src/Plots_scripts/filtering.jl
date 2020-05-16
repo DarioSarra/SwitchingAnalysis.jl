@@ -38,7 +38,6 @@ transform!(gd,:Reward => cumsum => :Cumulative_Reward)
 # calculate average reward rate for each poke cumulative reward / elapsed time
 pokes[!,:AverageRewRate] = 1 ./ (pokes.ElapsedTime ./ pokes.Cumulative_Reward)
 ## Process trials dataframe
-
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
         process_streaks(dd)
     end
@@ -48,12 +47,15 @@ if filtering results skewed a filter for values with a probability lower than 0.
 
 trim_conf_ints!(pokes,:Pre_Interpoke)
 trim_conf_ints!(pokes,:PokeDuration)
+filter!(r-> r.Trial <31,pokes)
+
 trim_conf_ints!(streaks,:Trial)
 #= the distribution of number of pokes before leaving results bimodal;
     with early leaving seaprated from the rest. Analysis on trials
     are therefore performed with at least 2 or more pokes before leaving=#
 filter!(r-> 1< r.Num_pokes < 31, streaks)
 trim_conf_ints!(streaks, :Num_pokes; percent = 99)
+filter!(r-> r.Trial <31,streaks)
 ##
 # @df streaks density(:Num_pokes)
 # @df trim_conf_ints(streaks, :Num_pokes) density(:Num_pokes)

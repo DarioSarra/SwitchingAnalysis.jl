@@ -40,7 +40,6 @@ df1 = combine(groupby(s,[:Phase, :Treatment, :MouseID])) do dd
     (NumPokes = mean(dd[:,:Num_pokes]),)
 end
 
-
 df2 = combine(groupby(df1,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:NumPokes)
     current_drug = Symbol(subdf[1,:Phase])
@@ -49,14 +48,13 @@ df2 = combine(groupby(df1,:Phase)) do dd
 end
 
 df3 = combine(groupby(df2,:Phase)) do dd
-    (Effect = mean(dd.Drug - dd.PreVehicle),
-    Wilcoxon = SignedRankTest(dd.Drug,dd.PreVehicle))
+    (Wilcoxon = SignedRankTest(dd.Drug,dd.PreVehicle),)
 end
-
 df3[!,:Median] = [t.median for t in df3[:,:Wilcoxon]]
 df3[!,:Values] = [t.vals for t in df3[:,:Wilcoxon]]
 df3[!,:CI] = [(t.median - confint(t)[1], confint(t)[2] - t.median) for t in df3[:,:Wilcoxon]]
 df3[!,:P] = [pvalue(t) for t in df3[:,:Wilcoxon]]
+T = df3[1,:Wilcoxon]
 Drug_colors!(df3)
 df3[!,:Pos] = [get(Treatment_dict,x,10) for x in df3[:,:Phase]]
 sort!(df3,:Pos)
@@ -66,14 +64,14 @@ df4 = flatten(df3,:Values)
     markercolor = :grey)
 Plots.abline!(0,0,color = :black, linestyle = :dash)
 @df df3 scatter!(:Phase,:Median,
-    color = :color,
+    yerror = :CI,
     linecolor = :black,
     markerstrokecolor = :black,
-    linewidth = 10,
-    yerror = :CI,
     markersize = 10,
     legend = false,
-    ylabel = "Signed rank test - median and c.i.",
+    tickfont = (7, :black),
+    color = :color,
+    ylabel = "Signed rank test - median and 95% c.i.",
     xlabel = "Treatment")
 ##
 savefig(joinpath(figs_loc,"Fig3/WilcoxonSignedRankTest.pdf"))

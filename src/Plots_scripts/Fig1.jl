@@ -12,4 +12,4 @@ Drug_colors!(Df)
     linewidth = 2,
     fillalpha = 0.1,
     xticks = 0:10:100)
-savefig(joinpath(figs_loc,"Fig1/trials_selection.pdf"))
+savefig(joinpath(figs_loc,"Fig1/trials_selected.pdf"))
