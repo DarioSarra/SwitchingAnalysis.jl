@@ -35,8 +35,10 @@ savefig(joinpath(figs_loc,"Fig2/Phase_reward_rate.pdf"))
 
 ## Marginal value theorem bar plot
 gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Trial])
-Rrate = combine(:InstRewRate => i -> (Leaving = i[end],
-    Average = mean(jump_missing(i))),gd)
+Rrate = combine([:InstRewRate, :AverageRewRate, :Reward] => (i,a,r) -> (Leaving = i[end],
+    Average = a[end],
+    Reward = r[end]),gd)
+filter!(r -> r.Reward, Rrate)
 df1 = stack(Rrate,[:Leaving,:Average])
 rename!(df1, [:variable => :Rate_on, :value => :InstRewRate])
 df2 = combine(groupby(df1,[:Treatment])) do dd
@@ -47,7 +49,7 @@ gd = groupby(df2,:Treatment)
 tp = [@df subdf bar(string.(:Xaxis), :Mean,
         xlabel = :Treatment[1],
         yerror = :SEM,
-        ylims = (0,1),
+        # ylims = (0,0.7),
         color = :color,
         label = false,
         yaxis = "Rewards rate") for subdf in gd]
@@ -56,7 +58,13 @@ plot(tp[ord]...)
 savefig(joinpath(figs_loc,"Fig2/D2reward_rate.pdf"))
 
 ## Marginal value theorem bar plot
-#Wilcoxon(pokes,[:InstRewRate,:AverageRewRate], group = :Treatment)
+df1 = combine(groupby(pokes,:Treatment)) do dd
+    wilcoxon(dd,:InstRewRate,:AverageRewRate)
+end
+df1[!,:Pos] = [get(Treatment_dict,x,10) for x in df1[:,:Treatment]]
+sort!(df1,:Pos)
+Drug_colors!(df1)
+plot_wilcoxon(df1)
 ## Cumulative pokes before leaving
 Df = combine(groupby(streaks,[:Treatment,:Protocol])) do dd
     ecdf(dd,:Num_pokes)
@@ -142,26 +150,3 @@ ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
 savefig(joinpath(figs_loc,"Fig2/Hpokes_per_trial.pdf"))
 ##
-#Wilcoxon(pokes,[:InstRewRate,:AverageRewRate], group = :Treatment)
-using DataFrames, HypothesisTests
-function wilcoxon(df::AbstractDataFrame,x::AbstractVector)
-    Vals = [df[:,c] for c in x]
-    t = SignedRankTest(Vals...)
-    dd = DataFrame()
-    dd[!,:Median] = [t.median]
-    dd[!,:CI] = [(t.median - confint(t)[1], confint(t)[2] - t.median)]
-    dd[!,:P] = [pvalue(t)]
-    dd[!,:Vals] = [t.vals for i in 1:1]
-    dd
-end
-
-df = DataFrame(a = rand(100),b = rand(["a","b"],100))
-wilcoxon(df,[:a])
-wilcoxon(pokes,:InstRewRate)
-dd = DataFrame()
-dd[!,:o] = [1]
-c = ones(100)
-[c]
-convert(Matrix,df[:,[:a]])
-x = :a
-x  isa Symbol

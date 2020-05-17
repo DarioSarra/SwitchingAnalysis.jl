@@ -103,15 +103,20 @@ function MVT(df::AbstractDataFrame; group = :Treatment)
     end
 end
 
-function MVT_meanInstRew(df::AbstractDataFrame; group = :Treatment)
-    gd = groupby(df,[group,:MouseID,:Day,:Trial])
-    Rrate = combine([:InstRewRate, :Reward] => (i,r) -> (Leaving = i[end],
-        Average = mean(jump_missing(i)),
-        Reward = r[end]),gd)
-    #filter!(r -> !r.Reward, Rrate)
-    gd = groupby(Rrate,[:MouseID,group])
-    res = combine([:Leaving,:Average] => (l,a) ->(Leaving_mean = mean(jump_missing(l)), Average_mean = mean(jump_NaN(a))), gd)
-    tp = [MVT_scatter(subdf) for subdf in groupby(res,group)]
-    ord = [1,5,4,2,7,9,8,6,3]
-    plot(tp[ord]...)
+function plot_wilcoxon(dd)
+    @df dd scatter(cols(1), :Vals,
+        color = :grey,
+        markeralpha = 0.4,
+        markercolor = :grey)
+    Plots.abline!(0,0,color = :black, linestyle = :dash)
+    @df dd scatter!(cols(1),:Median,
+        yerror = :CI,
+        linecolor = :black,
+        markerstrokecolor = :black,
+        markersize = 10,
+        legend = false,
+        tickfont = (7, :black),
+        color = :color,
+        ylabel = "Signed rank test - median and 95% c.i.",
+        xlabel = "Treatment")
 end
