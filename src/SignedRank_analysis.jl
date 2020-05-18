@@ -17,13 +17,27 @@ end
 
 wilcoxon(x::AbstractVector{<:Real}, y::AbstractVector{<:Real}) = wilcoxon(x-y)
 
-function wilcoxon(df::AbstractDataFrame,x::Symbol, by = :MouseID)
-    df1 = combine(x => mean => :Mean,groupby(df,by))
-    wilcoxon(df1[:,:Mean])
+function wilcoxon(df::AbstractDataFrame,x::Symbol, by = :MouseID; f = mean)
+    df1 = combine(x => f => :Mean,groupby(df,by))
+    check = SwitchingAnalysis.complete_vals(df1)
+    if any(x -> !x, check)
+        println( "got NaN values and dropped them")
+        dd = dropnan(df1)
+    else
+        dd = df1
+    end
+    wilcoxon(dd[:,:Mean])
 end
 
 
-function wilcoxon(df::AbstractDataFrame,x::Symbol, y::Symbol, by = :MouseID)
-    df1 = combine([x,y] => (a,b) -> (Mean_x = mean(a), Mean_y = mean(b)) ,groupby(df,by))
-    wilcoxon(df1[:,:Mean_x], df1[:,:Mean_y])
+function wilcoxon(df::AbstractDataFrame,x::Symbol, y::Symbol, by = :MouseID; f = mean)
+    df1 = combine([x,y] => (a,b) -> (Mean_x = f(a), Mean_y = f(b)), groupby(df,by))
+    check = SwitchingAnalysis.complete_vals(df1)
+    if any(x -> !x, check)
+        println( "got NaN values and dropped them")
+        dd = dropnan(df1)
+    else
+        dd = df1
+    end
+    wilcoxon(dd[:,:Mean_x], dd[:,:Mean_y])
 end

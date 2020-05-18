@@ -21,7 +21,7 @@ tp = [@df subdf plot(:Xaxis, :Mean,
     xlabel = :Phase[1],
     xticks = 0:5:30,
     group = :Treatment,
-    color = :color,
+    linecolor = :color,
     legend = false,
     ribbon = :ERR,
     linewidth = 2,
@@ -34,44 +34,46 @@ note = plot(xlims = (0,0.5), ylims = (0,0.5), annotations = (0.25,0.25,
 plot(vcat(tp[ord],note)...)
 savefig(joinpath(figs_loc,"Fig3/CumNumPokes.pdf"))
 
-#savefig(joinpath(figs_loc,"Fig3/DeltaNumPokes.pdf"))
-## Signed rank test
-df1 = combine(groupby(s,[:Phase, :Treatment, :MouseID])) do dd
-    (NumPokes = mean(dd[:,:Num_pokes]),)
-end
-
-df2 = combine(groupby(df1,:Phase)) do dd
-    subdf = unstack(dd,:Treatment,:NumPokes)
+## Signed rank test Num Pokes
+df1 = combine(groupby(s,:Phase)) do dd
+    subdf = unstack(dd,:Treatment,:Num_pokes)
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
-    dropmissing!(subdf)
 end
-
-df3 = combine(groupby(df2,:Phase)) do dd
-    (Wilcoxon = SignedRankTest(dd.Drug,dd.PreVehicle),)
+df2 = combine(groupby(df1,[:Phase,:MouseID])) do dd
+    (Drug = mean(skipmissing(dd[:,:Drug])), PreVehicle = mean(skipmissing(dd[:,:PreVehicle])))
+    # wilcoxon(dd,:Drug, :PreVehicle,:MouseID; f = x -> mean(skipmissing(x)))
 end
-df3[!,:Median] = [t.median for t in df3[:,:Wilcoxon]]
-df3[!,:Values] = [t.vals for t in df3[:,:Wilcoxon]]
-df3[!,:CI] = [(t.median - confint(t)[1], confint(t)[2] - t.median) for t in df3[:,:Wilcoxon]]
-df3[!,:P] = [pvalue(t) for t in df3[:,:Wilcoxon]]
-T = df3[1,:Wilcoxon]
-Drug_colors!(df3)
-df3[!,:Pos] = [get(Treatment_dict,x,10) for x in df3[:,:Phase]]
-sort!(df3,:Pos)
-df4 = flatten(df3,:Values)
-@df df4 scatter(:Phase, :Values, color = :grey,
-    markeralpha = 0.4,
-    markercolor = :grey)
-Plots.abline!(0,0,color = :black, linestyle = :dash)
-@df df3 scatter!(:Phase,:Median,
-    yerror = :CI,
-    linecolor = :black,
-    markerstrokecolor = :black,
-    markersize = 10,
-    legend = false,
-    tickfont = (7, :black),
-    color = :color,
-    ylabel = "Signed rank test - median and 95% c.i.",
-    xlabel = "Treatment")
-##
-savefig(joinpath(figs_loc,"Fig3/WilcoxonSignedRankTest.pdf"))
+df3 = dropnan(df2)
+df4 = combine(groupby(df3,:Phase)) do dd
+    wilcoxon(dd,:Drug,:PreVehicle)
+end
+altern = combine(groupby(df1,[:Phase])) do dd
+    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+end
+test = DataFrame(a = [NaN,0.4,3.2], b = [1,2,4], c = ["a", "b", "c"])
+any(isnan(test[:,:c]))
+check = SwitchingAnalysis.complete_vals(test)
+any(x -> !x, check)
+open_html_table(df4)
+Drug_colors!(df4)
+plot_wilcoxon(df4)
+savefig(joinpath(figs_loc,"Fig3/WilcoxonNumPokes.pdf"))
+## Traveltime analysis
+df1 = combine(groupby(s,:Phase)) do dd
+    subdf = unstack(dd,:Treatment,:Travel_to)
+    current_drug = Symbol(subdf[1,:Phase])
+    rename!(subdf, current_drug => :Drug)
+end
+df2 = combine(groupby(df1,[:Phase,:MouseID])) do dd
+    (Drug = mean(skipmissing(dd[:,:Drug])), PreVehicle = mean(skipmissing(dd[:,:PreVehicle])))
+    # wilcoxon(dd,:Drug, :PreVehicle,:MouseID; f = x -> mean(skipmissing(x)))
+end
+df3 = dropnan(df2)
+df4 = combine(groupby(df3,:Phase)) do dd
+    wilcoxon(dd,:Drug,:PreVehicle)
+end
+open_html_table(df4)
+Drug_colors!(df4)
+plot_wilcoxon(df4)
+savefig(joinpath(figs_loc,"Fig3/WilcoxonTravel.pdf"))

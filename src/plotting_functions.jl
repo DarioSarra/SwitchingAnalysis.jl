@@ -81,7 +81,7 @@ function MVT_scatter(toplot::AbstractDataFrame; group = :Treatment)
             xlabel = "y = $a + $(b)x",
             title = label)
         Plots.abline!(1,0,color = :black)
-        Plots.abline!(b,a,color = :red, legend = false)
+        Plots.abline!(b,a,linecolor = :red, legend = false)
         return plt
     end
 end
@@ -104,11 +104,13 @@ function MVT(df::AbstractDataFrame; group = :Treatment)
 end
 
 function plot_wilcoxon(dd)
-    @df dd scatter(cols(1), :Vals,
+    dd2 = flatten(dd,:Vals)
+    @df dd2 scatter(cols(1), :Vals,
         color = :grey,
         markeralpha = 0.4,
         markercolor = :grey)
     Plots.abline!(0,0,color = :black, linestyle = :dash)
+    c = :color in propertynames(dd) ? dd[:,:color] : :auto
     @df dd scatter!(cols(1),:Median,
         yerror = :CI,
         linecolor = :black,
@@ -116,7 +118,7 @@ function plot_wilcoxon(dd)
         markersize = 10,
         legend = false,
         tickfont = (7, :black),
-        color = :color,
+        color = c,
         ylabel = "Signed rank test - median and 95% c.i.",
         xlabel = "Treatment")
 end

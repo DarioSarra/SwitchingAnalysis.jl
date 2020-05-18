@@ -12,7 +12,8 @@ files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
 fullS =  CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types) |> DataFrame
 fullP =  CSV.read(joinpath(files_loc,"pokes.csv")) |> DataFrame
-gr(size=(600,600), tick_orientation = :out, grid = false)
+gr(size=(600,600), tick_orientation = :out, grid = false, linecolor = :black,
+markerstrokecolor = :black)
 ## removing irrelevant events and computes relevant variables for pokes dataframe
 
 # turning Protocol from Float to string to allow for categorical analysis

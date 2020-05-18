@@ -1,6 +1,8 @@
 function _notnan!(res, col)
     @inbounds for (i, el) in enumerate(col)
-        res[i] &= !isnan(el)
+        if typeof(el) <:Real
+            res[i] &= !isnan(el)
+        end
     end
     return nothing
 end

@@ -4,7 +4,7 @@ include("filtering.jl");
 Df = Prew(1:20)
 Protocol_colors!(Df)
 @df Df plot(:Poke, :Prew,
-    group = :env, color = :color)
+    group = :env, linecolor = :color)
 @df Df scatter!(:Poke, :Prew,
     group = :env, color = :color)
 savefig(joinpath(figs_loc,"Fig2/A_ProtocolsDecay.pdf"))
@@ -29,7 +29,7 @@ savefig(joinpath(figs_loc,"Fig2/B_RewardsPerProtocol.pdf"))
 
 ## Marginal value theorem scatter plot
 MVT(pokes)
-savefig(joinpath(figs_loc,"Fig2/D1reward_rate.pdf"))
+savefig(joinpath(figs_loc,"Fig2/D1_reward_rate.pdf"))
 MVT(pokes; group =:Phase)
 savefig(joinpath(figs_loc,"Fig2/Phase_reward_rate.pdf"))
 
@@ -55,16 +55,16 @@ tp = [@df subdf bar(string.(:Xaxis), :Mean,
         yaxis = "Rewards rate") for subdf in gd]
 ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
-savefig(joinpath(figs_loc,"Fig2/D2reward_rate.pdf"))
+savefig(joinpath(figs_loc,"Fig2/D2_reward_rate.pdf"))
 
-## Marginal value theorem bar plot
+## Marginal value theorem SignedRankTest
 df1 = combine(groupby(pokes,:Treatment)) do dd
     wilcoxon(dd,:InstRewRate,:AverageRewRate)
 end
-df1[!,:Pos] = [get(Treatment_dict,x,10) for x in df1[:,:Treatment]]
-sort!(df1,:Pos)
 Drug_colors!(df1)
 plot_wilcoxon(df1)
+savefig(joinpath(figs_loc,"Fig2/D3_SignedRank_rewardrate.pdf"))
+
 ## Cumulative pokes before leaving
 Df = combine(groupby(streaks,[:Treatment,:Protocol])) do dd
     ecdf(dd,:Num_pokes)
@@ -74,12 +74,13 @@ gd = groupby(Df,:Treatment)
 tp = [@df subdf plot(:Xaxis, :Mean,
     xlabel = :Treatment[1],
     group = :Protocol,
-    color = :color,
+    linecolor = :color,
+    color= :color,
     legend = false,
-    ribbon = :SEM) for subdf in gd]
+    ribbon = :ERR) for subdf in gd]
 ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
-savefig(joinpath(figs_loc,"Fig2/Epokes_per_trial.pdf"))
+savefig(joinpath(figs_loc,"Fig2/E_pokes_per_trial.pdf"))
 ## Number of pokes before leaving
 
 Df = combine(groupby(streaks,:Treatment)) do dd
@@ -91,7 +92,7 @@ gd = groupby(Df,:Treatment)
 tp = [@df subdf bar(:Protocol, :Mean,
         xlabel = :Treatment[1],
         yticks = 0:2:20,
-        ylims = (0,14),
+        ylims = (0,18),
         yerror = :SEM,
         color = :color,
         legend = :topleft,
@@ -99,12 +100,7 @@ tp = [@df subdf bar(:Protocol, :Mean,
         yaxis = "Pokes per trial") for subdf in gd]
 ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
-savefig(joinpath(figs_loc,"Fig2/Fpokes_per_trial.pdf"))
-
-## testing leaving average reward equal to average reward rate
-
-test = SignedRankTest(toplot[:,:Average_mean], toplot[:,:Leaving_mean])
-annotate!(0.5, 0.7, string(pvalue(test)))
+savefig(joinpath(figs_loc,"Fig2/F_pokes_per_trial.pdf"))
 
 ## P reward at leaving cumulative
 gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Protocol,:Trial])
@@ -117,16 +113,17 @@ Protocol_colors!(Df)
 gd = groupby(Df,:Treatment)
 tp = [@df subdf plot(:Xaxis, :Mean,
     # xlabel = :Treatment[1],
-    ribbon = :SEM,
+    ribbon = :ERR,
     group = :Protocol,
     legend = false,
     color = :color,
-    ylabel = "Cumulative probability",
+    linecolor = :color,
+    ylabel = "Cumulative",
     xlabel = "P reward at leaving \n $(:Treatment[1])"
     ) for subdf in gd]
 ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
-savefig(joinpath(figs_loc,"Fig2/Gpokes_per_trial.pdf"))
+savefig(joinpath(figs_loc,"Fig2/G_pokes_per_trial.pdf"))
 
 ## P reward at leaving bar plot
 gd = groupby(pokes,[:Treatment,:MouseID,:Day,:Protocol,:Trial])
@@ -148,5 +145,5 @@ tp = [@df subdf bar(:Protocol, :Mean,
         yaxis = "P reward at leaving") for subdf in gd]
 ord = [1,5,4,2,7,9,8,6,3]
 plot(tp[ord]...)
-savefig(joinpath(figs_loc,"Fig2/Hpokes_per_trial.pdf"))
+savefig(joinpath(figs_loc,"Fig2/H_PrewardatLeaving.pdf"))
 ##
