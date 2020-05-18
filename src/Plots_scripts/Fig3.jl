@@ -7,11 +7,10 @@ list = ["PreVehicle",
     "Methysergide",
     "Citalopram"]
 s = filter(r->r.Treatment in list &&
-    r.Trial < 31,
+    r.Trial < 61,
     streaks)
 
 ## number of pokes before leaving
-##
 Df = combine(groupby(s,[:Phase,:Treatment])) do dd
     ecdf(dd,:Num_pokes; mode = :conf)
 end
@@ -40,24 +39,11 @@ df1 = combine(groupby(s,:Phase)) do dd
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
 end
-df2 = combine(groupby(df1,[:Phase,:MouseID])) do dd
-    (Drug = mean(skipmissing(dd[:,:Drug])), PreVehicle = mean(skipmissing(dd[:,:PreVehicle])))
-    # wilcoxon(dd,:Drug, :PreVehicle,:MouseID; f = x -> mean(skipmissing(x)))
-end
-df3 = dropnan(df2)
-df4 = combine(groupby(df3,:Phase)) do dd
-    wilcoxon(dd,:Drug,:PreVehicle)
-end
-altern = combine(groupby(df1,[:Phase])) do dd
+df2 = combine(groupby(df1,[:Phase])) do dd
     wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
 end
-test = DataFrame(a = [NaN,0.4,3.2], b = [1,2,4], c = ["a", "b", "c"])
-any(isnan(test[:,:c]))
-check = SwitchingAnalysis.complete_vals(test)
-any(x -> !x, check)
-open_html_table(df4)
-Drug_colors!(df4)
-plot_wilcoxon(df4)
+Drug_colors!(df2)
+plot_wilcoxon(df2)
 savefig(joinpath(figs_loc,"Fig3/WilcoxonNumPokes.pdf"))
 ## Traveltime analysis
 df1 = combine(groupby(s,:Phase)) do dd
@@ -65,15 +51,10 @@ df1 = combine(groupby(s,:Phase)) do dd
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
 end
-df2 = combine(groupby(df1,[:Phase,:MouseID])) do dd
-    (Drug = mean(skipmissing(dd[:,:Drug])), PreVehicle = mean(skipmissing(dd[:,:PreVehicle])))
-    # wilcoxon(dd,:Drug, :PreVehicle,:MouseID; f = x -> mean(skipmissing(x)))
+df2 = combine(groupby(df1,[:Phase])) do dd
+    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
 end
-df3 = dropnan(df2)
-df4 = combine(groupby(df3,:Phase)) do dd
-    wilcoxon(dd,:Drug,:PreVehicle)
-end
-open_html_table(df4)
-Drug_colors!(df4)
-plot_wilcoxon(df4)
+Drug_colors!(df2)
+plot_wilcoxon(df2)
 savefig(joinpath(figs_loc,"Fig3/WilcoxonTravel.pdf"))
+##
