@@ -21,7 +21,9 @@ function process_streaks(df::DataFrames.AbstractDataFrame)
         #PokeSequence = [SVector{nrow(dd),Union{Bool,Missing}}(dd[!,:Reward])],
         Protocol = dd[1,:Protocol],
         Side = dd[1,:Side],
-        ReverseTrial = dd[1,:ReverseTrial]
+        ReverseTrial = dd[1,:ReverseTrial],
+        Stim = dd[1,:Stim],
+        Stim_Day = dd[1,:Stim_Day]
         )
         return dt
     end
