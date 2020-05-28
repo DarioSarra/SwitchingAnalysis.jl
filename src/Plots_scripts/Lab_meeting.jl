@@ -13,9 +13,10 @@ s = filter(r->r.Treatment in list &&
     # r.Trial_Travel_to < 40 &&
     r.MouseID != "pc7",
     streaks)
-s[s.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "PreVehicle" for o in s[s.Treatment .== "Saline",:Stim]]
+s[s.Treatment .== "PreVehicle",:Treatment] .= "Control"
+s[s.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "Control" for o in s[s.Treatment .== "Saline",:Stim]]
 s[s.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
-s[s.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "PreVehicle" for o in s[s.Treatment .== "SB242084_opt",:Stim]]
+s[s.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in s[s.Treatment .== "SB242084_opt",:Stim]]
 # Df = combine([:Treatment,:Stim_Day] => (t,s) -> (treatment = union(t)), groupby(s,:Phase))
 ######################## All  Manipulations ###################################
 df1 = combine(groupby(s,:Phase)) do dd
@@ -24,7 +25,7 @@ df1 = combine(groupby(s,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -37,7 +38,7 @@ df1 = combine(groupby(s,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -50,7 +51,7 @@ df1 = combine(groupby(s,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -64,7 +65,7 @@ df1 = combine(groupby(release_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -77,7 +78,7 @@ df1 = combine(groupby(release_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -90,7 +91,7 @@ df1 = combine(groupby(release_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -104,7 +105,7 @@ df1 = combine(groupby(glob_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -117,7 +118,7 @@ df1 = combine(groupby(glob_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -130,7 +131,7 @@ df1 = combine(groupby(glob_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -144,7 +145,7 @@ df1 = combine(groupby(sel_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -157,7 +158,7 @@ df1 = combine(groupby(sel_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
@@ -170,7 +171,7 @@ df1 = combine(groupby(sel_man,:Phase)) do dd
     rename!(subdf, current_drug => :Drug)
 end
 df2 = combine(groupby(df1,[:Phase])) do dd
-    wilcoxon(dd,:Drug, :PreVehicle; f = x -> mean(skipmissing(x)))
+    wilcoxon(dd,:Drug, :Control; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
