@@ -1,7 +1,7 @@
 module SwitchingAnalysis
 
 using Reexport
-@reexport using DataFrames, CSV, Statistics, StatsPlots, KernelDensity, HypothesisTests
+@reexport using DataFrames, CSV, Statistics, StatsBase, StatsPlots, KernelDensity, HypothesisTests
 using GLM
 
 export mac_gdrive, linux_gdrive, files_dir, figs_dir, columns_types
@@ -12,7 +12,7 @@ export process_streaks
 export dropnan, dropnan!, Protocol_colors!, Drug_colors!, jump_missing, jump_NaN
 export conf_ints, trim_conf_ints, trim_conf_ints!
 export KDensity, trim_dist, trim_dist!
-export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon
+export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw
 
 include("constants.jl")
 include("process_streaks.jl")

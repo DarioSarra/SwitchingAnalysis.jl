@@ -122,3 +122,20 @@ function plot_wilcoxon(dd)
         ylabel = "Signed rank test - median and 95% c.i.",
         xlabel = "Treatment")
 end
+
+function WebersLaw(df,x,group)
+    group_vars = vcat(:MouseID,group)
+    gd = groupby(df,group_vars)
+    df1 = combine([x] => a -> (Mean = mean(a), STD = std(a)), gd)
+    Drug_colors!(df1)
+    plt = @df df1 scatter(:Mean,:STD, color = :color,
+        markersize = 5, group = :Treatment, legend = :topleft,
+        xlims = (0,13), ylims = (0,13))
+    Plots.abline!(1,0, linestyle = :dash, xlabel = "Mean pokes after last reward", ylabel = "STD pokes after last reward", label = nothing)
+    combine(groupby(df1,group)) do dd
+        mdl = lm(@formula(STD ~ Mean),dd)
+        a,b = round.(coeftable(mdl).cols[1],digits = 3)
+        Plots.abline!(b,a, linewidth = 2, linecolor = dd[1,:color], label = "y = $(b)x + $a")
+    end
+    return plt
+end

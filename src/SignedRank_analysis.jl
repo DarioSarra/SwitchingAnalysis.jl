@@ -1,3 +1,6 @@
+"""
+    collect SignedRankTest analysis in a standardize table to plot
+"""
 function wilcoxon(x::AbstractVector{<:Real})
     t = SignedRankTest(x)
     dd = DataFrame()
@@ -7,13 +10,6 @@ function wilcoxon(x::AbstractVector{<:Real})
     dd[!,:Vals] = [t.vals for i in 1:1]
     dd
 end
-# function wilcoxon(x::AbstractVector{<:Real})
-#     t = SignedRankTest(x)
-#     (Median = t.median,
-#     CI = (t.median - confint(t)[1], confint(t)[2] - t.median),
-#     P = pvalue(t),
-#     Vals = t.vals)
-# end
 
 wilcoxon(x::AbstractVector{<:Real}, y::AbstractVector{<:Real}) = wilcoxon(x-y)
 
