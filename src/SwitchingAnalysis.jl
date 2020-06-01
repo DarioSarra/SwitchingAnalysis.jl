@@ -13,6 +13,7 @@ export dropnan, dropnan!, Protocol_colors!, Drug_colors!, jump_missing, jump_NaN
 export conf_ints, trim_conf_ints, trim_conf_ints!
 export KDensity, trim_dist, trim_dist!
 export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw
+export ODC
 
 include("constants.jl")
 include("process_streaks.jl")
@@ -21,5 +22,6 @@ include("plotting_functions.jl")
 include("probabilities.jl")
 include("utilities.jl")
 include("KDensity.jl")
+include("Omission_Duty_Cycle.jl")
 
 end # module
