@@ -139,3 +139,64 @@ function WebersLaw(df,x,group)
     end
     return plt
 end
+
+function plot_wilcoxon_odc(data,Phase,Allignment; limit = 6)
+
+    df0 = dropmissing(data,Allignment)
+    filter!(Allignment => a -> -limit < a < limit, df0)
+
+    df1 =  filter(r -> !ismissing(r.ODC) &&
+        !r.Reward &&
+        r.Phase in [Phase],
+        df0)
+
+    df2 = unstack(df1,:Treatment,:ODC)
+
+    gd = groupby(df2,[Allignment,:MouseID])
+    df3 = combine([:Control,Symbol(Phase)] => (c,d) ->
+        (Control = mean(skipmissing(c)), Treatment = mean(skipmissing(d))),gd)
+
+    # open_html_table(df3)
+
+    df4 = combine(groupby(df3,[Allignment])) do dd
+        wilcoxon(dd,:Treatment, :Control; f = x -> mean(skipmissing(x)))
+    end
+    plot_wilcoxon(df4)
+end
+
+function plot_odc(data::AbstractDataFrame,Phase::AbstractString,Allignment::Symbol; limit = 6)
+
+    df0 = dropmissing(data,Allignment)
+    filter!(Allignment => a -> -limit < a < limit, df0)
+
+    df1 =  filter(r -> !ismissing(r.ODC) &&
+        !r.Reward &&
+        r.Phase in [Phase],
+        df0)
+
+    df2 = combine(groupby(df1,:Treatment)) do dd
+        summarize(dd,Allignment,:ODC)
+    end
+
+    Drug_colors!(df2)
+    @df df2 scatter(:Xaxis, :Mean,
+        yerror = :SEM,
+        group = :Treatment,
+        color = :color,
+        legend = false)
+end
+
+function plot_odc(data::AbstractDataFrame,Phases::AbstractVector{<:AbstractString},Allignment::Symbol; limit = 6)
+    ps = []
+    for phase in Phases
+        p = plot_odc(data, phase,Allignment; limit = limit)
+        title!(phase)
+        push!(ps,p)
+    end
+    hight_layout = Int64(round(sqrt(length(ps))))
+    width_layout = Int64(ceil(length(ps) / hight_layout))
+    for i in (1:width_layout:length(ps) )
+        ylabel!(ps[i], "ODC")
+    end
+    plot(ps..., xlabel = string(Allignment))
+end

@@ -12,7 +12,7 @@ export process_streaks
 export dropnan, dropnan!, Protocol_colors!, Drug_colors!, jump_missing, jump_NaN
 export conf_ints, trim_conf_ints, trim_conf_ints!
 export KDensity, trim_dist, trim_dist!
-export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw
+export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw, plot_wilcoxon_odc, plot_odc
 export ODC
 
 include("constants.jl")
