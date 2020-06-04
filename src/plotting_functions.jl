@@ -103,19 +103,23 @@ function MVT(df::AbstractDataFrame; group = :Treatment)
     end
 end
 
-function plot_wilcoxon(dd)
+function plot_wilcoxon(dd; color = nothing)
     dd2 = flatten(dd,:Vals)
     @df dd2 scatter(cols(1), :Vals,
         color = :grey,
         markeralpha = 0.4,
         markercolor = :grey)
     Plots.abline!(0,0,color = :black, linestyle = :dash)
-    c = :color in propertynames(dd) ? dd[:,:color] : :auto
+    if isnothing(color)
+        c = :color in propertynames(dd) ? dd[:,:color] : :auto
+    else
+        c = color
+    end
     @df dd scatter!(cols(1),:Median,
         yerror = :CI,
         linecolor = :black,
         markerstrokecolor = :black,
-        markersize = 10,
+        markersize = 6,
         legend = false,
         tickfont = (7, :black),
         color = c,
@@ -140,7 +144,7 @@ function WebersLaw(df,x,group)
     return plt
 end
 
-function plot_wilcoxon_odc(data,Phase,Allignment; limit = 6)
+function plot_wilcoxon_odc(data::AbstractDataFrame,Phase::AbstractString,Allignment::Symbol; limit = 6, color = nothing)
 
     df0 = dropmissing(data,Allignment)
     filter!(Allignment => a -> -limit < a < limit, df0)
@@ -156,12 +160,28 @@ function plot_wilcoxon_odc(data,Phase,Allignment; limit = 6)
     df3 = combine([:Control,Symbol(Phase)] => (c,d) ->
         (Control = mean(skipmissing(c)), Treatment = mean(skipmissing(d))),gd)
 
-    # open_html_table(df3)
-
     df4 = combine(groupby(df3,[Allignment])) do dd
         wilcoxon(dd,:Treatment, :Control; f = x -> mean(skipmissing(x)))
     end
-    plot_wilcoxon(df4)
+    plot_wilcoxon(df4; color = color)
+end
+
+function plot_wilcoxon_odc(data::AbstractDataFrame,Phases::AbstractVector{<:AbstractString},Allignment::Symbol; limit = 6, color = nothing)
+    ps = []
+    for phase in Phases
+        c = get(drug_colors,phase,:grey)
+        p = plot_wilcoxon_odc(data,phase,Allignment; limit = limit, color = c)
+        title!(phase)
+        ylabel!("")
+        push!(ps,p)
+    end
+    hight_layout = Int64(round(sqrt(length(ps))))
+    width_layout = Int64(ceil(length(ps) / hight_layout))
+
+    for i in (1:width_layout:length(ps) )
+        ylabel!(ps[i], "Signed rank test ODC")
+    end
+    plot(ps..., xlabel = string(Allignment))
 end
 
 function plot_odc(data::AbstractDataFrame,Phase::AbstractString,Allignment::Symbol; limit = 6)
