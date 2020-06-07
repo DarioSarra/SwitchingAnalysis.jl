@@ -220,3 +220,20 @@ function plot_odc(data::AbstractDataFrame,Phases::AbstractVector{<:AbstractStrin
     end
     plot(ps..., xlabel = string(Allignment))
 end
+
+function odc_regression(data::AbstractDataFrame,phase::AbstractVector{<:AbstractString})
+    df1 = filter(r -> r.Phase in phase,data)
+    df2 = combine(groupby(df1,:Manipulation)) do dd
+        summarize(dd, :PokeFromLastRew,:ODC)
+    end
+    df2[!, :color] = [get(drug_colors,r,:grey) for r in df2.Manipulation]
+    @df df2 plot(:Xaxis, :Mean, ribbon = :SEM,
+        group = :Manipulation,
+        xlabel = "Poke from Last Reward",
+        ylabel = "Omission duty cycle",
+        xticks = 1:30,
+        fillalpha = 0.2,
+        linewidth = 3,
+        color = :color,
+        linecolor = :color)
+end

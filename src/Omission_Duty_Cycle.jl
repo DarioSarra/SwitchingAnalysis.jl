@@ -37,3 +37,29 @@ function count_from_last(v::AbstractVector)
         return collect(1:l) .- last_r
     end
 end
+
+function calculate_odc(data::AbstractDataFrame,Phase::AbstractString,Allignment::Symbol)
+    df0 = dropmissing(data,Allignment)
+    # filter!(Allignment => a -> -limit < a < limit, df0)
+
+    df1 =  filter(r -> !ismissing(r.ODC) &&
+        !r.Reward &&
+        r.Phase in [Phase],
+        df0)
+
+    df2 = combine(groupby(df1,:Treatment)) do dd
+        summarize(dd,Allignment,:ODC)
+    end
+end
+
+function calculate_odc(data::AbstractDataFrame,Allignment::Symbol; normalize = nothing)
+    if !in(:ODC,propertynames(data))
+        error("ODC column missing from data")
+    end
+    df0 = dropmissing(data,Allignment)
+    df1 =  filter(r -> !ismissing(r.ODC) &&
+        !r.Reward,
+        df0)
+    gd = groupby(df1,[:Phase,:Treatment,:MouseID, Allignment])
+    df2 = combine(:ODC => mean,gd)
+end
