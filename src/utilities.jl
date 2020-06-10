@@ -119,3 +119,11 @@ end
 function jump_NaN(v::AbstractVector)
     res = v[map(!,isnan.(v))]
 end
+
+skipmean(v) = mean(skipmissing(v))
+
+function binquantile(v, bins = 15)
+    qs = nquantile(v,bins)
+    nq = [findfirst(q -> o < q, qs) for o in v]
+    [isnothing(q) ? 15 : q - 1 for q in nq]
+end

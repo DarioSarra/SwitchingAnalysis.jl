@@ -1,6 +1,6 @@
 function LoglikelihoodRatioTest(simple_model, full_model)
-    degrees = dof(simple_model) - dof(full_model)
-    ccdf(Distributions.Chisq(degrees), deviance(simple_model) - deviance(full_model))
+    degrees = abs(dof(simple_model) - dof(full_model))
+    ccdf(Chisq(degrees), deviance(simple_model) - deviance(full_model))
 end
 
 

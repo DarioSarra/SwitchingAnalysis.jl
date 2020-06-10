@@ -237,3 +237,34 @@ function odc_regression(data::AbstractDataFrame,phase::AbstractVector{<:Abstract
         color = :color,
         linecolor = :color)
 end
+
+function plot_deltafromrew(df, phase; limit = 15)
+    gd = groupby(df,[:PokeFromLastRew])
+    df1 = combine(gd,:DeltaCitalopram => skipmean => :DeltaCitalopram,
+        :DeltaOptogenetic => skipmean => :DeltaOptogenetic,
+        :DeltaAltanserin=> skipmean => :DeltaAltanserin,
+        :DeltaSB242084 => skipmean => :DeltaSB242084)
+    c_name = "Delta" * phase
+    c_symbol = Symbol(c_name)
+     @df filter(r -> r.PokeFromLastRew < limit, df) scatter(:PokeFromLastRew, cols(c_symbol), markercolor = :grey)
+    @df filter(r -> r.PokeFromLastRew < limit, df1) scatter!(:PokeFromLastRew, cols(c_symbol), markersize = 8, markercolor = get(drug_colors,phase,:red))
+    Plots.abline!(0,0, legend = false,
+        ylims = (-0.1,0.1),
+        xticks = 1:20, xlabel = "Poke from last reward", ylabel = "ODC delta " * phase)
+end
+
+function plot_QODC(df, allignment; xflip = false, legend = false)
+    gd1 = groupby(df,[:Phase,:MouseID,allignment,:Treatment])
+    df1 = combine(gd1, :QODC => mean)
+    gd2 = groupby(df1,[:Phase,allignment,:Treatment])
+    df2 = combine(gd2, :QODC_mean => mean => :QODC_mean, :QODC_mean => sem => :QODC_sem)
+    plts = []
+    Drug_colors!(df2)
+    combine(groupby(df2,:Phase)) do dd
+        p = @df dd scatter(cols(allignment), :QODC_mean, yerror = :QODC_sem,
+        group = :Treatment, color = :color, xflip = xflip, legend = legend,
+        xticks = 0:20, yticks = 0:20, ylims = (3,12))
+        push!(plts,p)
+    end
+    plot(plts...)
+end

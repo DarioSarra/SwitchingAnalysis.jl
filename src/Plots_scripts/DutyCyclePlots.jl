@@ -88,12 +88,10 @@ end
 plot_wilcoxon(df6)
 filename2 = "DeltaODC_separatecontrol.pdf"
 savefig(joinpath(figs_loc,"ODC",filename2))
-## lm of manipulation after last reward
-using GLM, MixedModels
+##
 odc = ODC(pokes)
 odc[!,:ClearDuration] = [r.Reward ? r.PokeDuration > 0.7 : r.PokeDuration < 0.4 for r in eachrow(odc)]
-list = ["None",
-    "PreVehicle",
+list = ["PreVehicle",
     "Altanserin",
     "SB242084",
     "Way_100135",
@@ -101,42 +99,80 @@ list = ["None",
     "Citalopram",
     "SB242084_opt",
     "Saline"]
+
 filter!(r -> r.Treatment in list &&
     r.ClearDuration &&
     r.Trial < 61 &&
     r.MouseID != "pc7",# ["pc1","pc2","pc3","pc4","pc5","pc6","pc8","pc9","pc10"],
     odc)
 
-union(odc.Treatment)
 odc[odc.Treatment .== "PreVehicle",:Treatment] .= "Control"
-odc[odc.Treatment .== "None",:Treatment] .= "Control"
 odc[odc.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "Control" for o in odc[odc.Treatment .== "Saline",:Stim]]
 odc[odc.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
 odc[odc.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in odc[odc.Treatment .== "SB242084_opt",:Stim]]
 
+union(odc.Treatment)
+
 df1 = filter(r -> !r.Reward &&
     r.ExpDay > 3 &&
     !ismissing(r.PokeFromLastRew) &&
-    r.PokeFromLastRew > 0 &&
-    !ismissing(r.ODC), odc)
-df1[!,:Treatment] = [ t == "Control" ? "Control" : "Manipulation"  for t in df1.Treatment]
-println.(union(df1.Phase))
-categorical!(df1,[:MouseID,:Treatment,:Phase])
-levels!(df1.Treatment, ["Control", "Manipulation"])
-levels!(df1.Phase, ["training",
-    "Citalopram",
-    "Methysergide",
-    "Altanserin",
-    "Way_100135",
-    "SB242084",
-    "Optogenetic",
-    "SB242084_opt"])
-##
-mdl1 = @formula(ODC ~ 1 + PokeFromLastRew + (1|MouseID))
-mdl2 = @formula(ODC ~ 1 + PokeFromLastRew + Treatment*Phase + (1|MouseID))
-fm1 = fit!(LinearMixedModel(mdl1,df1))
-fm2 = fit!(LinearMixedModel(mdl2,df1))
-aic(fm1) > aic(fm2)
+    0 < r.PokeFromLastRew &&
+    !ismissing(r.ODC) &&
+    r.Treatment in ["Control","Citalopram", "Optogenetic", "Altanserin","SB242084"] &&
+    !in(r.Phase,["Methysergide", "Way_100135","SB242084_opt"]) ,odc)
 
-control_data = filter(r -> r.Phase == "training", df1)
-@df control_data scatter(:PokeFromLastRew,:ODC)
+categorical!(df1,[:MouseID,:Treatment,:Phase])
+
+levels!(df1.Treatment, ["Control",
+    "Citalopram",
+    "Optogenetic",
+    "Altanserin",
+    "SB242084"])
+
+mdl1 = @formula(ODC ~ 1 + PokeFromLastRew + (1|MouseID))
+mdl2 = @formula(ODC ~ 1 + PokeFromLastRew * Treatment + (1|MouseID))
+fm1 = fit!(LinearMixedModel(mdl1,df1))
+Manipulation_effect = fit!(LinearMixedModel(mdl2,df1))
+AICc_test = SwitchingAnalysis.AICcTest(Manipulation_effect,fm1)
+##
+df2 = combine(groupby(df1, :Treatment)) do dd
+    summarize(dd,:PokeFromLastRew,:ODC)
+end
+Drug_colors!(df2)
+##
+TRM = ["Control", "Citalopram"]
+@df filter(r -> r.Treatment  in TRM,df2) plot(:Xaxis, :Mean, ribbon = :SEM,
+    fillalpha = 0.3, linewidth = 3, xlims = (1,12), ylims = (0.5,1),
+    group = :Treatment, linecolor = :color, color = :color, xlabel = "Poke from last reward", ylabel = "ODC")
+filename = TRM[2] * "ODCRegression.pdf"
+savefig(joinpath(figs_loc,"ODC","Regressions",filename))
+##
+TRM = ["Control", "Optogenetic"]
+@df filter(r -> r.Treatment  in TRM,df2) plot(:Xaxis, :Mean, ribbon = :SEM,
+    fillalpha = 0.3, linewidth = 3, xlims = (1,12), ylims = (0.5,1),
+    group = :Treatment, linecolor = :color, color = :color, xlabel = "Poke from last reward", ylabel = "ODC")
+filename = TRM[2] * "ODCRegression.pdf"
+savefig(joinpath(figs_loc,"ODC","Regressions",filename))
+##
+TRM = ["Control", "Altanserin"]
+@df filter(r -> r.Treatment  in TRM,df2) plot(:Xaxis, :Mean, ribbon = :SEM,
+    fillalpha = 0.3, linewidth = 3, xlims = (1,12), ylims = (0.5,1),
+    group = :Treatment, linecolor = :color, color = :color, xlabel = "Poke from last reward", ylabel = "ODC")
+filename = TRM[2] * "ODCRegression.pdf"
+savefig(joinpath(figs_loc,"ODC","Regressions",filename))
+##
+TRM = ["Control", "SB242084"]
+@df filter(r -> r.Treatment  in TRM,df2) plot(:Xaxis, :Mean, ribbon = :SEM,
+    fillalpha = 0.3, linewidth = 3, xlims = (1,12), ylims = (0.5,1),
+    group = :Treatment, linecolor = :color, color = :color, xlabel = "Poke from last reward", ylabel = "ODC")
+filename = TRM[2] * "ODCRegression.pdf"
+savefig(joinpath(figs_loc,"ODC","Regressions",filename))
+## Logistic regression
+df1[!,:Leave] = [r == 0 for r in df1.PokeFromLeaving]
+# full model
+m_full = @formula(Leave ~ ODC * PokeFromLastRew * Treatment  + (1|MouseID));
+f_full = GeneralizedLinearMixedModel(m_full, df1, Bernoulli());
+# simplified model without significant simple factors
+m_a1 = @formula(Leave ~ ODC + PokeFromLastRew + ODC & PokeFromLastRew + ODC & Treatment & PokeFromLastRew  + (1|MouseID));
+f_a1 = GeneralizedLinearMixedModel(m_a1, df1, Bernoulli());
+AICcTest(f_full, f_a1)

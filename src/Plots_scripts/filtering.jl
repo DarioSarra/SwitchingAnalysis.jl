@@ -46,11 +46,10 @@ streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Inject
 #= Filter dataset cutting the 5th percentile tail (either bilaterally or to the right extreme)
 if filtering results skewed a filter for values with a probability lower than 0.99 is applied =#
 
-trim_conf_ints!(pokes,:Pre_Interpoke)
-trim_conf_ints!(pokes,:PokeDuration)
-filter!(r-> r.Trial <31,pokes)
-
-trim_conf_ints!(streaks,:Trial)
+# trim_conf_ints!(pokes,:Pre_Interpoke)
+# trim_conf_ints!(pokes,:PokeDuration)
+#
+# trim_conf_ints!(streaks,:Trial)
 #= the distribution of number of pokes before leaving results bimodal;
     with early leaving seaprated from the rest. Analysis on trials
     are therefore performed with at least 2 or more pokes before leaving=#
