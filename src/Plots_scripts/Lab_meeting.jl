@@ -9,7 +9,7 @@ list = ["PreVehicle",
     "SB242084_opt",
     "Saline"]
 s = filter(r->r.Treatment in list &&
-    r.Trial < 31 &&
+    r.Trial < 41 &&
     # r.Trial_Travel_to < 40 &&
     r.MouseID != "pc7",
     streaks)
@@ -30,7 +30,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/WilcoxonNumPokes30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/WilcoxonNumPokes40.pdf"))
 ##
 df1 = combine(groupby(s,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Trial_Travel_to)
@@ -43,7 +43,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/WilcoxonTravelROI30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/WilcoxonTravelROI40.pdf"))
 ##
 df1 = combine(groupby(s,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:AfterLast)
@@ -56,7 +56,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/WilcoxonAfterLast30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/WilcoxonAfterLast40.pdf"))
 ######################## 5HT Release  Manipulations ###################################
 release_man =  filter(r -> r.Phase in ["Citalopram", "Optogenetic"], s)
 df1 = combine(groupby(release_man,:Phase)) do dd
@@ -70,7 +70,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/ReleaseNumPokes30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/ReleaseNumPokes40.pdf"))
 ##
 df1 = combine(groupby(release_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Trial_Travel_to)
@@ -83,7 +83,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/ReleaseTravelROI30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/ReleaseTravelROI40.pdf"))
 ##
 df1 = combine(groupby(release_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:AfterLast)
@@ -96,7 +96,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/ReleaseAfterLast30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/ReleaseAfterLast50.pdf"))
 ######################## Global  Manipulations ###################################
 glob_man =  filter(r -> r.Phase in ["Citalopram", "Optogenetic", "Methysergide"], s)
 df1 = combine(groupby(glob_man,:Phase)) do dd
@@ -110,7 +110,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/GlobalNumPokes30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/GlobalNumPokes40.pdf"))
 ##
 df1 = combine(groupby(glob_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Trial_Travel_to)
@@ -123,7 +123,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/GlobalTravelROI30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/GlobalTravelROI40.pdf"))
 ##
 df1 = combine(groupby(glob_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:AfterLast)
@@ -136,7 +136,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/GlobalAfterLast30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/GlobalAfterLast40.pdf"))
 ######################## Selective  Manipulations ###################################
 sel_man =  filter(r -> r.Phase in ["SB242084", "Altanserin", "Way_100135"], s)
 df1 = combine(groupby(sel_man,:Phase)) do dd
@@ -150,7 +150,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/SelectiveNumPokes30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/SelectiveNumPokes40.pdf"))
 ##
 df1 = combine(groupby(sel_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Trial_Travel_to)
@@ -163,7 +163,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/SelectiveTravelROI30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/SelectiveTravelROI40.pdf"))
 ##
 df1 = combine(groupby(sel_man,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:AfterLast)
@@ -176,7 +176,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2)
 ##
-savefig(joinpath(figs_loc,"LabMeeting/SelectiveAfterLast30.pdf"))
+savefig(joinpath(figs_loc,"LabMeeting/SelectiveAfterLast40.pdf"))
 ##
 x = collect(1:100)
 y = -log.(10,x)
