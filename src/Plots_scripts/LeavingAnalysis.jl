@@ -18,7 +18,7 @@ filter!(r -> r.Treatment in list &&
     !ismissing(r.Pre_Interpoke) &&
     r.Pre_Interpoke < 0.5 &&
     r.ClearDuration &&
-    r.Trial < 61 &&
+    r.Trial < 41 &&
     r.MouseID != "d5" &&
     r.MouseID != "pc7",# ["pc1","pc2","pc3","pc4","pc5","pc6","pc8","pc9","pc10"],
     odc)
@@ -53,7 +53,7 @@ df1[!,:Leave] = [r == 0 for r in df1.PokeFromLeaving]
 # pharma
 ################# from last reward
 odc_fromlast = @formula(QODC ~ PokeFromLastRew * Treatment + (1|MouseID))
-filtered = filter(r -> r.PokeFromLastRew < 10, df1)
+filtered = filter(r -> r.PokeFromLastRew < 9, df1)
 cit = filter(r -> r.Phase == "Citalopram", filtered)
 opto = filter(r -> r.Phase == "Optogenetic", filtered)
 alt = filter(r -> r.Phase == "Altanserin", filtered)
@@ -63,7 +63,7 @@ sb_fromlast = fit!(LinearMixedModel(odc_fromlast,sb))
 opt_fromlast = fit!(LinearMixedModel(odc_fromlast,opto))
 alt_fromlast = fit!(LinearMixedModel(odc_fromlast,alt))
 plot_QODC(filtered,:PokeFromLastRew)
-savefig(joinpath(figs_loc,"ODC","ODC_from_last","QODC_lastrew.pdf"))
+savefig(joinpath(figs_loc,"ODC","ODC_from_last","QODC_lastrew60.pdf"))
 ########################## from leaving
 odc_fromleave = @formula(QODC ~ PokeFromLeaving * Treatment + (1|MouseID))
 filtered = filter(r -> r.PokeFromLeaving < 5, df1)
@@ -81,40 +81,28 @@ sb_fromleave = GeneralizedLinearMixedModel(odc_fromleave,sb,Poisson())
 opt_fromleave = GeneralizedLinearMixedModel(odc_fromleave,opto,Poisson())
 alt_fromleave = GeneralizedLinearMixedModel(odc_fromleave,alt,Poisson())
 plot_QODC(filtered,:PokeFromLeaving; xflip = true)
-savefig(joinpath(figs_loc,"ODC","ODC_from_leaving","QODC_leaving.pdf"))
-##
-allignment = :PokeFromLeaving
-dd = filtered
-gd1 = groupby(dd,[:Phase,:MouseID,allignment,:Treatment])
-dd1 = combine(gd1, :QODC => mean)
-gd2 = groupby(dd1,[:Phase,allignment,:Treatment])
-dd2 = combine(gd2, :QODC_mean => mean => :QODC_mean, :QODC_mean => sem => :QODC_sem)
-plts = []
-Drug_colors!(dd2)
-combine(groupby(dd2,:Phase)) do dd
-    p = @df dd scatter(cols(allignment), :QODC_mean, yerror = :QODC_sem,
-    group = :Treatment,xflip =true, legend = :bottomleft, color = :color)
-    push!(plts,p)
+savefig(joinpath(figs_loc,"ODC","ODC_from_leaving","QODC_leaving60.pdf"))
+## test QODC exactly at leaving
+filtered = filter(r -> r.PokeFromLeaving == 0, df1)
+gd2 = groupby(filtered,[:MouseID,:Phase,:Treatment])
+df2 = combine(gd2, :QODC => mean => :QODC)
+gd3 = groupby(df2,[:Phase])
+df3 = combine(gd3) do dd
+    dd[:,:Treatment] = [t == "Control" ? t : "Manipulation" for t in dd.Treatment]
+    unstack(dd,:Treatment, :QODC)
 end
-plot(plts...)
+dropmissing!(df3)
+gd4 = groupby(df3,:Phase)
+df4 = combine(gd4) do dd
+    wilcoxon(dd,:Control,:Manipulation)
+end
+df4[!,:Phase] = String.(df4.Phase)
+Drug_colors!(df4)
+plot_wilcoxon(df4)
+savefig(joinpath(figs_loc,"ODC","ODC_from_leaving","WilcoxonQODC_leaving50trials.pdf"))
+## heatmap
 
-#########
-union(pharma.MouseID)
-union(pharma.Treatment)
-scatter(pharma.Leave,pharma.PokeFromLastRew)
-pharma_leave = countmap(pharma[pharma.Leave,:PokeFromLastRew])
-pharma_stay = countmap(pharma[.!pharma.Leave,:PokeFromLastRew])
-scatter(collect(keys(pharma_leave)),collect(values(pharma_leave))./sum(collect(values(d))))
-scatter!(collect(keys(pharma_stay)),collect(values(pharma_stay))./sum(collect(values(d))))
-#opto
-opto = filter(r -> r.Phase == "Optogenetic", df1)
-union(opto.MouseID)
-union(opto.Treatment)
-scatter(opto.Leave,opto.PokeFromLastRew)
-opto_leave = countmap(opto[opto.Leave,:PokeFromLastRew])
-opto_stay = countmap(opto[.!opto.Leave,:PokeFromLastRew])
-scatter(collect(keys(opto_leave)),collect(values(opto_leave))./sum(collect(values(d))))
-scatter!(collect(keys(opto_stay)),collect(values(opto_stay))./sum(collect(values(d))))
+
 ############################ pharma ######################################
 basic_pharma = @formula(Leave ~ Poke_within_Trial + (1|MouseID));
 odc_pharma = @formula(Leave ~ ODC * Poke_within_Trial + (1|MouseID));
