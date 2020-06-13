@@ -18,7 +18,7 @@ filter!(r -> r.Treatment in list &&
     !ismissing(r.Pre_Interpoke) &&
     r.Pre_Interpoke < 0.5 &&
     r.ClearDuration &&
-    r.Trial < 41 &&
+    r.Trial < 51 &&
     r.MouseID != "d5" &&
     r.MouseID != "pc7",# ["pc1","pc2","pc3","pc4","pc5","pc6","pc8","pc9","pc10"],
     odc)
@@ -53,7 +53,7 @@ df1[!,:Leave] = [r == 0 for r in df1.PokeFromLeaving]
 # pharma
 ################# from last reward
 odc_fromlast = @formula(QODC ~ PokeFromLastRew * Treatment + (1|MouseID))
-filtered = filter(r -> r.PokeFromLastRew < 9, df1)
+filtered = filter(r -> r.PokeFromLastRew < 11, df1)
 cit = filter(r -> r.Phase == "Citalopram", filtered)
 opto = filter(r -> r.Phase == "Optogenetic", filtered)
 alt = filter(r -> r.Phase == "Altanserin", filtered)
@@ -62,8 +62,8 @@ cit_fromlast = fit!(LinearMixedModel(odc_fromlast,cit))
 sb_fromlast = fit!(LinearMixedModel(odc_fromlast,sb))
 opt_fromlast = fit!(LinearMixedModel(odc_fromlast,opto))
 alt_fromlast = fit!(LinearMixedModel(odc_fromlast,alt))
-plot_QODC(filtered,:PokeFromLastRew)
-savefig(joinpath(figs_loc,"ODC","ODC_from_last","QODC_lastrew60.pdf"))
+ps = plot_QODC(filtered,:PokeFromLastRew)
+savefig(joinpath(figs_loc,"ODC","ODC_from_last","QODC_lastrew50.pdf"))
 ########################## from leaving
 odc_fromleave = @formula(QODC ~ PokeFromLeaving * Treatment + (1|MouseID))
 filtered = filter(r -> r.PokeFromLeaving < 5, df1)

@@ -48,3 +48,12 @@ const Treatment_ord = [
 ]
 
 const Treatment_dict = Dict(x=>i for (i,x) in enumerate(Treatment_ord))
+
+const Plotting_position = Dict("Optogenetic" => 1,
+                                "Citalopram" => 4,
+                                "Methysergide" => 3,
+                                "Altanserin" => 2,
+                                "SB242084" => 5,
+                                "Way_100135" => 6,
+                                "SB242084_opt" => 7
+                                )

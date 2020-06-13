@@ -6,7 +6,7 @@ using Reexport
 using Distributions
 
 export mac_gdrive, linux_gdrive, files_dir, figs_dir, columns_types
-export drug_colors, protocol_colors, Treatment_dict
+export drug_colors, protocol_colors, Treatment_dict, Plotting_position
 export Prew, Poutcome, Pobservations, Pprotocol, Pnext
 export wilcoxon
 export process_streaks

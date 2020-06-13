@@ -103,9 +103,24 @@ function MVT(df::AbstractDataFrame; group = :Treatment)
     end
 end
 
-function plot_wilcoxon(dd; color = nothing)
+function plot_wilcoxon(dd; color = nothing , sorting = nothing)
+    if isnothing(sorting)
+        sorting = Dict()
+        for (v,k) in enumerate(sort(dd[:,1]))
+            sorting[k] = v
+        end
+    end
+    position = []
+    original = []
+    for (k,v) in sorting
+        if k in dd[:,1]
+            push!(position,v)
+            push!(original,k)
+        end
+    end
+    dd[!,:x] = [get(sorting,x,0) for x in dd[:,1]]
     dd2 = flatten(dd,:Vals)
-    @df dd2 scatter(cols(1), :Vals,
+    @df dd2 scatter(:x, :Vals,
         color = :grey,
         markeralpha = 0.4,
         markercolor = :grey)
@@ -115,16 +130,17 @@ function plot_wilcoxon(dd; color = nothing)
     else
         c = color
     end
-    @df dd scatter!(cols(1),:Median,
+    @df dd scatter!(:x,:Median,
         yerror = :CI,
         linecolor = :black,
         markerstrokecolor = :black,
-        markersize = 6,
+        markersize = 8,
         legend = false,
         tickfont = (7, :black),
+        xlims = (minimum(:x) - 0.5, maximum(:x) + 0.5),
+        xticks = (position,original),
         color = c,
-        ylabel = "Signed rank test - median and 95% c.i.",
-        xlabel = "Treatment")
+        ylabel = "Signed rank test - median and 95% c.i.")
 end
 
 function WebersLaw(df,x,group)
@@ -253,7 +269,7 @@ function plot_deltafromrew(df, phase; limit = 15)
         xticks = 1:20, xlabel = "Poke from last reward", ylabel = "ODC delta " * phase)
 end
 
-function plot_QODC(df, allignment; xflip = false, legend = false)
+function plot_QODC(df, allignment; xflip = false, legend = false, ylims = (3,12))
     gd1 = groupby(df,[:Phase,:MouseID,allignment,:Treatment])
     df1 = combine(gd1, :QODC => mean)
     gd2 = groupby(df1,[:Phase,allignment,:Treatment])
@@ -263,7 +279,8 @@ function plot_QODC(df, allignment; xflip = false, legend = false)
     combine(groupby(df2,:Phase)) do dd
         p = @df dd scatter(cols(allignment), :QODC_mean, yerror = :QODC_sem,
         group = :Treatment, color = :color, xflip = xflip, legend = legend,
-        xticks = 0:20, yticks = 0:20, ylims = (3,12))
+        xticks = 0:20, yticks = 0:20, ylims = ylims, markersize = 8,
+        ylabel = "Omissions duty cycle quantile")
         push!(plts,p)
     end
     plot(plts...)

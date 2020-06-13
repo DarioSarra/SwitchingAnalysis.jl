@@ -1,7 +1,7 @@
 """
     'wilcoxon(df::AbstractDataFrame,x::Symbol, y::Symbol, by = :MouseID; f = mean)'
 
-x and y are paired vector to compare effect of condtion in y vs baseline in x    
+x and y are paired vector to compare effect of condtion in y vs baseline in x
 collect SignedRankTest analysis in a standardize table to plot
 """
 function wilcoxon(x::AbstractVector{<:Real})
@@ -14,7 +14,7 @@ function wilcoxon(x::AbstractVector{<:Real})
     dd
 end
 
-wilcoxon(x::AbstractVector{<:Real}, y::AbstractVector{<:Real}) = wilcoxon(x-y)
+wilcoxon(x::AbstractVector{<:Real}, y::AbstractVector{<:Real}) = wilcoxon(y-x)
 
 function wilcoxon(df::AbstractDataFrame,x::Symbol, by = :MouseID; f = mean)
     df1 = combine(x => f => :Mean,groupby(df,by))
