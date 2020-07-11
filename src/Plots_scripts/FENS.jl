@@ -16,6 +16,7 @@ streaks[streaks.Treatment .== "PreVehicle",:Treatment] .= "Control"
 streaks[streaks.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "Control" for o in streaks[streaks.Treatment .== "Saline",:Stim]]
 streaks[streaks.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
 streaks[streaks.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in streaks[streaks.Treatment .== "SB242084_opt",:Stim]]
+streaks[!,:ROILeavingTime] = streaks.Stop_trial .- streaks.Stop_poking
 ##
 s = filter(r -> r.Phase in ["Optogenetic", "Citalopram"], streaks)
 ##
@@ -30,7 +31,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2; sorting = Plotting_position)
 ##
-savefig(joinpath(figs_loc,"FENS/Plot1_NumPokes_50trials.pdf"))
+savefig(joinpath(figs_loc,"FENS/Plot5_NumPokes_50trials.pdf"))
 ##
 df1 = combine(groupby(s,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:AfterLast)
@@ -43,7 +44,7 @@ end
 Drug_colors!(df2)
 plot_wilcoxon(df2; sorting = Plotting_position)
 ##
-savefig(joinpath(figs_loc,"FENS/Plot16_Afterlast_50trials.pdf"))
+savefig(joinpath(figs_loc,"FENS/Plot9_Afterlast_50trials.pdf"))
 ##
 df1 = combine(groupby(s,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Poking_Travel_to)
@@ -70,6 +71,19 @@ Drug_colors!(df2)
 plot_wilcoxon(df2; sorting = Plotting_position)
 ##
 savefig(joinpath(figs_loc,"FENS/Plot8_ROITravel_50trials.pdf"))
+##
+df1 = combine(groupby(s,:Phase)) do dd
+    subdf = unstack(dd,:Treatment,:ROILeavingTime)
+    current_drug = Symbol(subdf[1,:Phase])
+    rename!(subdf, current_drug => :Drug)
+end
+df2 = combine(groupby(df1,[:Phase])) do dd
+    wilcoxon(dd,:Control, :Drug; f = x -> mean(skipmissing(x)))
+end
+Drug_colors!(df2)
+plot_wilcoxon(df2; sorting = Plotting_position)
+##
+savefig(joinpath(figs_loc,"FENS/Plot14_ROILeaving_50trials.pdf"))
 ################################ Leaving analysis ##################################
 odc = ODC(pokes)
 @df filter(r -> r.PokeDuration < 4,odc) density(:PokeDuration,group = :Reward)
@@ -124,7 +138,7 @@ df1[!,:Leave] = [r == 0 for r in df1.PokeFromLeaving]
 filtered = filter(r -> r.PokeFromLeaving < 6 && r.Phase in ["Citalopram"], df1)
 ps = plot_QODC(filtered,:PokeFromLeaving; xflip = true, ylims = :auto)
 ##
-savefig(joinpath(figs_loc,"FENS/Plot10_QODCfromLeaving_50trials.pdf"))
+savefig(joinpath(figs_loc,"FENS/Plot11_QODCfromLeaving_50trials.pdf"))
 ##
 filtered = filter(r -> r.PokeFromLeaving == 0 &&
     r.Phase in ["Optogenetic","Citalopram","SB242084","Altanserin"], df1)
