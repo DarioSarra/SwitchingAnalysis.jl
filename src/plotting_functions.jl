@@ -140,6 +140,8 @@ function plot_wilcoxon(dd; color = nothing , sorting = nothing)
         xlims = (minimum(:x) - 0.5, maximum(:x) + 0.5),
         xticks = (position,original),
         color = c,
+        thickness_scaling = 2,
+        guidefontsize = 8,
         ylabel = "Signed rank test - median and 95% c.i.")
 end
 
@@ -279,7 +281,10 @@ function plot_QODC(df, allignment; xflip = false, legend = false, ylims = (3,12)
     combine(groupby(df2,:Phase)) do dd
         p = @df dd scatter(cols(allignment), :QODC_mean, yerror = :QODC_sem,
         group = :Treatment, color = :color, xflip = xflip, legend = legend,
-        xticks = 0:20, yticks = 0:20, ylims = ylims, markersize = 8,
+        xticks = 0:20, yticks = 0:20, ylims = ylims,
+        markersize = 4,
+        thickness_scaling = 2,
+        guidefontsize = 8,
         ylabel = "Omissions duty cycle quantile")
         push!(plts,p)
     end
