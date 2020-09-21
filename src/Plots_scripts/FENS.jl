@@ -129,16 +129,17 @@ levels!(df1.Treatment, ["Control",
     "Optogenetic",
     "Altanserin",
     "SB242084"])
-
+# Normalise omission duty cicle with animal session mean
 transform!(groupby(df1,[:MouseID,:Phase,:Treatment]), :ODC => mean => :ODC_mean)
 df1[!,:NODC] = df1.ODC ./ df1.ODC_mean
+# Convert Normalise ODC in 15 quantiles
 transform!(groupby(df1,[:MouseID,:Phase,:Treatment]), :NODC => binquantile => :QODC)
 df1[!,:Leave] = [r == 0 for r in df1.PokeFromLeaving]
 ##
-filtered = filter(r -> r.PokeFromLeaving < 6 && r.Phase in ["Citalopram"], df1)
+filtered = filter(r -> r.PokeFromLeaving < 7 && r.Phase in ["Optogenetic"], df1)
 ps = plot_QODC(filtered,:PokeFromLeaving; xflip = true, ylims = :auto)
 ##
-savefig(joinpath(figs_loc,"FENS/Plot11_QODCfromLeaving_50trials.pdf"))
+savefig(joinpath(figs_loc,"Report_sept_2020/QODCfromLeaving_opto_50trials.pdf"))
 ##
 filtered = filter(r -> r.PokeFromLeaving == 0 &&
     r.Phase in ["Optogenetic","Citalopram","SB242084","Altanserin"], df1)
