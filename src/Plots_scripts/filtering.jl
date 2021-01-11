@@ -6,8 +6,12 @@ using HypothesisTests
 using BrowseTables
 
 ## load
-ongoing_dir = linux_gdrive
-#ongoing_dir = mac_gdrive
+if ispath(linux_gdrive)
+    ongoing_dir = linux_gdrive
+else
+    ongoing_dir = mac_gdrive
+end
+ 
 files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
 fullS =  CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types) |> DataFrame
