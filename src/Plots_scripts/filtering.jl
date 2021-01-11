@@ -4,6 +4,7 @@ using Revise
 using SwitchingAnalysis
 using HypothesisTests
 using BrowseTables
+using Plots.PlotMeasures
 
 ## load
 if ispath(linux_gdrive)

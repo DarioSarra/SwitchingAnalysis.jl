@@ -1,7 +1,7 @@
 module SwitchingAnalysis
 
 using Reexport
-@reexport using DataFrames, CSV, Statistics, StatsBase, StatsPlots, KernelDensity, HypothesisTests
+@reexport using DataFrames, CSV, Statistics, StatsBase,Plots, StatsPlots, KernelDensity, HypothesisTests
 @reexport using GLM, MixedModels
 using Distributions
 
