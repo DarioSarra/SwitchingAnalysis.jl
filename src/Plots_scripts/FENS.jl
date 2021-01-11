@@ -25,6 +25,7 @@ df1 = combine(groupby(s,:Phase)) do dd
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
 end
+open_html_table(df1)
 df2 = combine(groupby(df1,[:Phase])) do dd
     wilcoxon(dd,:Control, :Drug; f = x -> mean(skipmissing(x)))
 end

@@ -1,4 +1,4 @@
-function Prew(protocol,poke::Int64)
+function Prew(protocol::Float64,poke::Int64)
     protocol*(ℯ^(-(poke-1)/5))
 end
 
@@ -51,7 +51,7 @@ end
 """
     Pprotocol(protocol,observations)
 
-Compute the probability of the curent trial being equal to protocol
+Compute the probability of the current trial being equal to protocol
 given a series of (observations). Compute the probability of a series of
 observation to be genrated by the specified scaling factor (protocol)
 given the 3 possible protocol type (0.5,0.75,1.0)
