@@ -30,7 +30,7 @@ pokes = filter(r-> !ismissing(r.Protocol) &&
 pokes =  dropmissing(pokes, :Poke)
 disallowmissing!(pokes, :Reward)
 # computing the probability of next poke to be a reward and instanteneous reward rate
-pokes[!,:Actual_Prew] = [Prew(parse(Float64,prot),Int64(pok)) for (prot,pok) in zip(pokes.Protocol,pokes.Poke_within_Trial)]
+pokes[!,:Next_Prew] = [Prew(parse(Float64,prot) + 1,Int64(pok)) for (prot,pok) in zip(pokes.Protocol,pokes.Poke_within_Trial)]
 gd = groupby(pokes, [:Day,:MouseID,:Trial])
 transform!(gd,:Reward => Pnext => :Pnextrew)
 # calculate time interval from previous poke out to current poke out

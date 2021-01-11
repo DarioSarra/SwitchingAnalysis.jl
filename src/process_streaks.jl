@@ -24,7 +24,7 @@ function process_streaks(df::DataFrames.AbstractDataFrame)
         ReverseTrial = dd[1,:ReverseTrial],
         Stim = dd[1,:Stim],
         Stim_Day = dd[1,:Stim_Day],
-        Actual_Leaving_Prew = dd[end,:Actual_Prew]
+        Leaving_NextPrew = dd[end,:Next_Prew]
         )
         return dt
     end

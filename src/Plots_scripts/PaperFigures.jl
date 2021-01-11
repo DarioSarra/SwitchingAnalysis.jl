@@ -25,13 +25,13 @@ streaks[!,:ROILeavingTime] = streaks.Stop_trial .- streaks.Stop_poking
 ################################ Fig2 scatter  controls ##################################
 
 gd1 = groupby(streaks,[:Protocol,:MouseID,:Phase,:Treatment])
-df1 = combine(gd1, :Num_Rewards => mean => :Num_Rewards,:Num_pokes => mean => :Num_pokes, :AfterLast => mean => :AfterLast,:Actual_Leaving_Prew => mean => :Leaving_Prew)
+df1 = combine(gd1, :Num_Rewards => mean => :Num_Rewards,:Num_pokes => mean => :Num_pokes, :AfterLast => mean => :AfterLast,:Leaving_NextPrew => mean => :Leaving_NextPrew)
 
 gd2 = groupby(df1,[:Protocol,:Treatment])
 df2 = combine(gd2, :Num_Rewards => mean, :Num_Rewards => sem,
     :Num_pokes => mean, :Num_pokes => sem,
     :AfterLast => mean, :AfterLast => sem,
-    :Leaving_Prew => mean, :Leaving_Prew => sem)
+    :Leaving_NextPrew => mean, :Leaving_NextPrew => sem)
 filt_2 = filter(r->r.Treatment == "Control",df2)
 sort!(filt_2, :Protocol)
 @df filt_2 scatter(:Protocol, :Num_Rewards_mean, yerror = :Num_Rewards_sem, label = false, xlims = (0.25,2.75), ylims = (0,6))
@@ -40,13 +40,25 @@ savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumRewards.pdf"))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumPokes.pdf"))
 @df filt_2 scatter(:Protocol, :AfterLast_mean, yerror = :AfterLast_sem, label = false, xlims = (0.25,2.75), ylims = (5,7))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","AfterLast.pdf"))
-@df filt_2 scatter(:Protocol, :Leaving_Prew_mean, yerror = :Leaving_Prew_sem,label = false, xlims = (0.25,2.75), ylims =(0,0.2))
+@df filt_2 scatter(:Protocol, :Leaving_NextPrew_mean, yerror = :Leaving_NextPrew_sem,label = false, xlims = (0.25,2.75), ylims = (0.2,0.25))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","Prew.pdf"))
 
 
 testdf = filter(r->r.Treatment == "Control",streaks)
-fm1 = fit!(LinearMixedModel(@formula(Actual_Leaving_Prew ~ 1 + (1|MouseID)),testdf))
-fm2 = fit!(LinearMixedModel(@formula(Actual_Leaving_Prew ~ 1 + Protocol + (1|MouseID)),testdf))
+testdf[!,:NumericalProt] = parse.(Float64, testdf.Protocol)
+NR_m1 = fit!(LinearMixedModel(@formula(Num_Rewards ~ 1 + (1|MouseID)),testdf))
+NR_m2 = fit!(LinearMixedModel(@formula(Num_Rewards ~ 1 + NumericalProt + (1|MouseID)),testdf))
+Likelyhood_Ratio_test(NR_m1,NR_m2)
+NP_m1 = fit!(LinearMixedModel(@formula(Num_pokes ~ 1 + (1|MouseID)),testdf))
+NP_m2 = fit!(LinearMixedModel(@formula(Num_pokes ~ 1 + NumericalProt + (1|MouseID)),testdf))
+Likelyhood_Ratio_test(NP_m1,NP_m2)
+AL_m1 = fit!(LinearMixedModel(@formula(AfterLast ~ 1 + (1|MouseID)),testdf))
+AL_m2 = fit!(LinearMixedModel(@formula(AfterLast ~ 1 + NumericalProt + (1|MouseID)),testdf))
+Likelyhood_Ratio_test(AL_m1,AL_m2)
+PR_m1 = fit!(LinearMixedModel(@formula(Leaving_NextPrew ~ 1 + (1|MouseID)),testdf))
+PR_m2 = fit!(LinearMixedModel(@formula(Leaving_NextPrew ~ 1 + NumericalProt + (1|MouseID)),testdf))
+Likelyhood_Ratio_test(PR_m1,PR_m2)
+
 
 fm4 = fit(MixedModel,@formula(AfterLast ~ 1 + (1|MouseID)),age_df,Poisson())
 ################################ Fig3 scatter  selective ##################################
