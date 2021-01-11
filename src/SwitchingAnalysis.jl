@@ -15,7 +15,7 @@ export conf_ints, trim_conf_ints, trim_conf_ints!
 export KDensity, trim_dist, trim_dist!
 export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw, plot_wilcoxon_odc, plot_odc, odc_regression, plot_deltafromrew, plot_QODC
 export ODC, calculate_odc
-export LoglikelihoodRatioTest, AICTest, AICcTest
+export Likelyhood_Ratio_test
 
 include("constants.jl")
 include("process_streaks.jl")
@@ -25,6 +25,6 @@ include("probabilities.jl")
 include("utilities.jl")
 include("KDensity.jl")
 include("Omission_Duty_Cycle.jl")
-include("Stat_tests.jl")
+include("DOFtests.jl")
 
 end # module

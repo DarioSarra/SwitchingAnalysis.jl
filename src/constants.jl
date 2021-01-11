@@ -53,7 +53,7 @@ const Plotting_position = Dict("Optogenetic" => 1,
                                 "Citalopram" => 2,
                                 "Methysergide" => 3,
                                 "SB242084" => 4,
-                                "Altanserin" => 2,
+                                "Altanserin" => 5,
                                 "Way_100135" => 6,
                                 "SB242084_opt" => 7
                                 )
