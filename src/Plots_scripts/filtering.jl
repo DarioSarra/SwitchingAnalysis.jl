@@ -44,6 +44,13 @@ rename!(pokes, :PokeIn_PokeOut_function => :ElapsedTime)
 transform!(gd,:Reward => cumsum => :Cumulative_Reward)
 # calculate average reward rate for each poke cumulative reward / elapsed time
 pokes[!,:AverageRewRate] = 1 ./ (pokes.ElapsedTime ./ pokes.Cumulative_Reward)
+# calculate time elapsed from the last pokeout of the previous trial
+pokes[!,:TimeFromLeaving] = zeros(nrow(pokes))
+gd1 = groupby(pokes,[:MouseID,:Day])
+combine(gd1) do dd
+    dd[:,:TimeFromLeaving] = TimeFromLeaving(dd)
+end
+open_html_table(pokes[1:100,[:Side,:Poke,:Trial,:PokeIn,:PokeOut,:TimeFromLeaving]])
 ## Process trials dataframe
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
         process_streaks(dd)

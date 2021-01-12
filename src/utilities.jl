@@ -127,3 +127,19 @@ function binquantile(v, bins = 15)
     nq = [findfirst(q -> o < q, qs) for o in v]
     [isnothing(q) ? 15 : q - 1 for q in nq]
 end
+
+"""
+    calculate the elapsed time from the last poke of the previous trial assuming it receives a pokes dataframe
+"""
+function TimeFromLeaving(dfpokes)
+    start = dfpokes[1,:PokeIn]
+    E = Float64[]
+    for (i,o,l) in zip(dfpokes.PokeIn, dfpokes.PokeOut, dfpokes.LastPoke)
+        ela = i - start
+        push!(E,ela)
+        if l
+            start = o
+        end
+    end
+    return E
+end
