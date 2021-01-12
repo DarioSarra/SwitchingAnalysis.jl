@@ -50,7 +50,21 @@ gd1 = groupby(pokes,[:MouseID,:Day])
 combine(gd1) do dd
     dd[:,:TimeFromLeaving] = TimeFromLeaving(dd)
 end
-open_html_table(pokes[1:100,[:Side,:Poke,:Trial,:PokeIn,:PokeOut,:TimeFromLeaving]])
+nbins = 200
+lr = LinRange(0,60,nbins)
+pokes[!,:TimeFromLeaving] = [isnothing(findfirst( x .< lr)) ? round(nbins * step(lr), digits = 1) : round(findfirst( x .< lr) * step(lr), digits = 1) for x in pokes.TimeFromLeaving]
+pokes[!,:CumRewTrial] = Vector{Float64}(undef,nrow(pokes))
+gd2 = groupby(pokes,[:Trial,:MouseID,:Day])
+combine(gd2) do dd
+    dd[:,:CumRewTrial] = cumsum(dd.Reward)
+end
+gd3 = groupby(pokes,[:Protocol])
+combine(gd3) do dd
+    dd[:,:CumRewTrial] = dd[:,:CumRewTrial]./maximum(dd.CumRewTrial)
+end
+mean(pokes.AverageRewRate)
+
+# open_html_table(pokes[1:100,[:Side,:Poke,:Trial,:PokeIn,:PokeOut,:TimeFromLeaving]])
 ## Process trials dataframe
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
         process_streaks(dd)

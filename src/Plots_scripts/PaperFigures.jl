@@ -39,56 +39,51 @@ Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol]
 @df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","Distributions.pdf"))
 
-filt_1 = filter(r->r.Treatment == "Control",pokes)
-filt_1[!,:TimeFromLeaving] = zeros(nrow(filt_1))
-gd1 = groupby(filt_1,[:MouseID,:Day])
-combine(gd1) do dd
-    dd[:,:TimeFromLeaving] = TimeFromLeaving(dd)
-end
-open_html_table(filt_1[1:100,[:Side,:Poke,:Trial,:PokeIn,:PokeOut,:TimeFromLeaving]])
+filt_1 = filter(r->r.Treatment == "Control" && r.TimeFromLeaving > 0,pokes)
+gd1 = groupby(filt_1,[:MouseID,:TimeFromLeaving,:Protocol])
+df2 = combine(gd1, :CumRewTrial => mean => :CumRewTrial)
+gd2 = groupby(df2,[:Protocol,:TimeFromLeaving])
+df3 = combine(gd2, :CumRewTrial => mean, :CumRewTrial => sem)
+Protocol_colors!(df3)
 
-function TimeFromLeaving(dfpokes)
-    start = dfpokes[1,:PokeIn]
-    E = Float64[]
-    for (i,o,l) in zip(dfpokes.PokeIn, dfpokes.PokeOut, dfpokes.LastPoke)
-        ela = i - start
-        push!(E,ela)
-        if l
-            start = o
-        end
-    end
-    return E
-end
-typeof(filt_1.PokeIn)
+@df df3 scatter(:TimeFromLeaving,:CumRewTrial_mean, group = :Protocol, xlims = (0,30), markersize = 4, color = :color)
 
-gd_1 = groupby(pokes,[:MouseID,:ExpDay,:Trial])
 
-pokes.ElapsedTime
-filt_1.Poke_within_Trial
-filt_1.FirstPoke = lag(filt_1.LastPoke,default = true)
-filt_1[!,:StreakTime] = [r.LastPoke ? r.PokeIn for r in rows(filt_1)]
-filt_1.PokeIn
-hh = fit(Histogram,filt_1.PokeIn)
-plot(hh)
+###
 gd1 = groupby(streaks,[:Protocol,:MouseID,:Phase,:Treatment])
-df1 = combine(gd1, :Num_Rewards => mean => :Num_Rewards,:Num_pokes => mean => :Num_pokes, :AfterLast => mean => :AfterLast,:Leaving_NextPrew => mean => :Leaving_NextPrew)
+df1 = combine(gd1, :Num_Rewards => mean => :Num_Rewards,
+    :Num_pokes => mean => :Num_pokes,
+    :AfterLast => mean => :AfterLast,
+    :Leaving_NextPrew => mean => :Leaving_NextPrew,
+    :AverageRewRate => mean => :AverageRewRate)
 
-gd2 = groupby(df1,[:Protocol,:Treatment])
-df2 = combine(gd2, :Num_Rewards => mean, :Num_Rewards => sem,
+gd2 = groupby(df1,:Treatment)
+df2 = combine(gd2, :AverageRewRate => mean, :AverageRewRate => sem,
+    :Leaving_NextPrew => mean, :Leaving_NextPrew => sem)
+filt_2 = filter(r->r.Treatment == "Control",df2)
+res = DataFrame(Condition = ["Average", "At Leaving"],
+    Mean = [filt_2[1,:AverageRewRate_mean], filt_2[1,:Leaving_NextPrew_mean]],
+    Sem = [filt_2[1,:AverageRewRate_sem], filt_2[1,:Leaving_NextPrew_sem]])
+@df res scatter(:Condition,:Mean, yerror = :Sem, color = :grey, xlims = (0.25,1.75), label = false,ylims = (0.1,0.3), yticks = 0.0:0.05:0.3)
+savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","RateAtLeaving.pdf"))
+
+
+gd3 = groupby(df1,[:Protocol,:Treatment])
+df3 = combine(gd3, :Num_Rewards => mean, :Num_Rewards => sem,
     :Num_pokes => mean, :Num_pokes => sem,
     :AfterLast => mean, :AfterLast => sem,
     :Leaving_NextPrew => mean, :Leaving_NextPrew => sem)
 
-filt_2 = filter(r->r.Treatment == "Control",df2)
-sort!(filt_2, :Protocol)
-filt_2[!,:Color] = [get(protocol_colors,x,:grey) for x in filt_2.Protocol]
-@df filt_2 scatter(:Protocol, :Num_Rewards_mean, yerror = :Num_Rewards_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (1,5))
+filt_3 = filter(r->r.Treatment == "Control",df3)
+sort!(filt_3, :Protocol)
+filt_3[!,:Color] = [get(protocol_colors,x,:grey) for x in filt_3.Protocol]
+@df filt_3 scatter(:Protocol, :Num_Rewards_mean, yerror = :Num_Rewards_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (1,5))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumRewards.pdf"))
-@df filt_2 scatter(:Protocol, :Num_pokes_mean, yerror = :Num_pokes_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (11,15))
+@df filt_3 scatter(:Protocol, :Num_pokes_mean, yerror = :Num_pokes_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (11,15))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumPokes.pdf"))
-@df filt_2 scatter(:Protocol, :AfterLast_mean, yerror = :AfterLast_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (5,7))
+@df filt_3 scatter(:Protocol, :AfterLast_mean, yerror = :AfterLast_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (5,7))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","AfterLast.pdf"))
-@df filt_2 scatter(:Protocol, :Leaving_NextPrew_mean, yerror = :Leaving_NextPrew_sem,label = false, color = :Color, xlims = (0.25,2.75), ylims = (0.0,0.4))
+@df filt_3 scatter(:Protocol, :Leaving_NextPrew_mean, yerror = :Leaving_NextPrew_sem,label = false, color = :Color, xlims = (0.25,2.75), ylims = (0.1,0.3), yticks = 0.0:0.05:0.3)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","Prew.pdf"))
 
 
