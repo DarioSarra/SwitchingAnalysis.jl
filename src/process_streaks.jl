@@ -36,6 +36,7 @@ function process_streaks(df::DataFrames.AbstractDataFrame)
     streak_table[!,:Poking_Travel_to] = [x.< 0 ? 0 : x for x in prov]
     prov = lead(streak_table[!,:Start_trial],default = 0.0) .- streak_table[!,:Stop_trial];
     streak_table[!,:Trial_Travel_to] = [x.< 0 ? 0 : x for x in prov]
-    streak_table[!,:Travel_to] = streak_table.Poking_Travel_to + streak_table.Trial_Travel_to
+    # streak_table[!,:Travel_to] = streak_table.Poking_Travel_to + streak_table.Trial_Travel_to
+    streak_table[!,:ROI_Leaving_Time] = streak_table.Stop_trial - streak_table.Stop_poking
     return streak_table
 end

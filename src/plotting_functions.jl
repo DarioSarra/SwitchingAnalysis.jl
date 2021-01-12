@@ -103,7 +103,7 @@ function MVT(df::AbstractDataFrame; group = :Treatment)
     end
 end
 
-function plot_wilcoxon(dd; color = nothing , sorting = nothing)
+function plot_wilcoxon(dd; color = nothing , sorting = nothing, showmice = true)
     if isnothing(sorting)
         sorting = Dict()
         for (v,k) in enumerate(sort(dd[:,1]))
@@ -120,10 +120,14 @@ function plot_wilcoxon(dd; color = nothing , sorting = nothing)
     end
     dd[!,:x] = [get(sorting,x,0) for x in dd[:,1]]
     dd2 = flatten(dd,:Vals)
-    @df dd2 scatter(:x, :Vals,
-        color = :grey,
-        markeralpha = 0.4,
-        markercolor = :grey)
+    if showmice
+        @df dd2 scatter(:x, :Vals,
+            color = :grey,
+            markeralpha = 0.4,
+            markercolor = :grey)
+    else
+        plot()
+    end
     Plots.abline!(0,0,color = :black, linestyle = :dash)
     if isnothing(color)
         c = :color in propertynames(dd) ? dd[:,:color] : :auto

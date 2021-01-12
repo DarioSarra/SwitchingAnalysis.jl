@@ -4,6 +4,12 @@
 x and y are paired vector to compare effect of condtion in y vs baseline in x
 collect SignedRankTest analysis in a standardize table to plot
 """
+function CIq(x)
+    m = median(x)
+    (m - quantile(x,0.025), quantile(x,0.95) - m)
+    # (quantile(x,[0.025,0.975])...,)
+end
+
 function wilcoxon(x::AbstractVector{<:Real})
     t = SignedRankTest(x)
     dd = DataFrame()
