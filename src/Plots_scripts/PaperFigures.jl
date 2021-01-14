@@ -45,7 +45,7 @@ pokes[pokes.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
 pokes[pokes.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in pokes[pokes.Treatment .== "SB242084_opt",:Stim]]
 
 
-filt_1 = filter(r->r.Treatment == "Control" && r.TimeFromLeaving > 0,pokes)
+filt_1 = filter(r->r.Treatment == "Control",pokes)
 gd1 = groupby(filt_1,[:MouseID,:TimeFromLeaving,:Protocol])
 df2 = combine(gd1, :CumRewTrial => mean => :CumRewTrial)
 gd2 = groupby(df2,[:Protocol,:TimeFromLeaving])
@@ -56,6 +56,7 @@ Protocol_colors!(df3)
 
 ################################ Fig2 scatter  controls ##################################
 Pstate= Prew(1:20)
+open_html_table(Pstate)
 Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol]
 @df Pstate plot(:Poke,:Prew, group = :Protocol, linecolor = :Color, legend = false)
 @df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color, ylims = (0,1.1), yticks = 0:0.2:1)
@@ -168,7 +169,7 @@ savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig3","Sel_Prot_AfterLast.pdf"))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig3","Sel_Prot_PrewLeaving.pdf"))
 ################################ Fig4 global protocol effect ##################################
 df1 = combine(groupby(streaks,:Phase)) do dd
-    subdf = unstack(dd,:Treatment,:ROI_Leaving_Time)
+    subdf = unstack(dd,:Treatment,:Num_Rewards)
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
 end
@@ -177,6 +178,7 @@ df2 = combine(groupby(df1,[:Phase])) do dd
     wilcoxon(dd,:Control, :Drug; f = x -> mean(skipmissing(x)))
 end
 Drug_colors!(df2)
+plot_wilcoxon(filter!(r->r.Phase in ["Optogenetic","Citalopram"],df2),showmice = false)
 plot_wilcoxon(filter!(r->r.Phase in ["Optogenetic","Citalopram"],df2),showmice = false)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig4","Glob_Wilcoxon_ROILeaving.pdf"))
 
