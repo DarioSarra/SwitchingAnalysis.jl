@@ -15,8 +15,8 @@ end
 
 files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
-fullS =  CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types) |> DataFrame
-fullP =  CSV.read(joinpath(files_loc,"pokes.csv")) |> DataFrame
+fullS =  DataFrame(CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types))
+fullP =  DataFrame(CSV.read(joinpath(files_loc,"pokes.csv")))
 gr(size=(600,600), tick_orientation = :out, grid = false, linecolor = :black,
 markerstrokecolor = :black)
 ## removing irrelevant events and computes relevant variables for pokes dataframe
@@ -62,13 +62,21 @@ gd3 = groupby(pokes,[:Protocol])
 combine(gd3) do dd
     dd[:,:CumRewTrial] = dd[:,:CumRewTrial]./maximum(dd.CumRewTrial)
 end
-mean(pokes.AverageRewRate)
+checkstim = combine(groupby(pokes,[:MouseID,:ExpDay]), :Stim => (s -> length(union(s)) > 1) => :StimDay)
+checkstim[!,:StimDay] = [m in ["pc10", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9"] ? s : false for (m,s) in zip(checkstim.MouseID, checkstim.StimDay)]
+expanded = leftjoin(pokes, checkstim, on = [:MouseID,:ExpDay]).StimDay
+pokes.Stim_Day = expanded
 
 # open_html_table(pokes[1:100,[:Side,:Poke,:Trial,:PokeIn,:PokeOut,:TimeFromLeaving]])
 ## Process trials dataframe
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
         process_streaks(dd)
     end
+##Process trials dataframe
+count_bouts!(pokes)
+bouts = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
+    process_bouts(dd)
+end
 ##
 #= Filter dataset cutting the 5th percentile tail (either bilaterally or to the right extreme)
 if filtering results skewed a filter for values with a probability lower than 0.99 is applied =#
