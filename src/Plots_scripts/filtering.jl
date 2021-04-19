@@ -15,8 +15,8 @@ end
 
 files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
-fullS =  DataFrame(CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types))
-fullP =  DataFrame(CSV.read(joinpath(files_loc,"pokes.csv")))
+fullS =  CSV.read(joinpath(files_loc,"streaks.csv"), DataFrame; types = columns_types)
+fullP =  CSV.read(joinpath(files_loc,"pokes.csv"), DataFrame)
 gr(size=(600,600), tick_orientation = :out, grid = false, linecolor = :black,
 markerstrokecolor = :black)
 ## removing irrelevant events and computes relevant variables for pokes dataframe

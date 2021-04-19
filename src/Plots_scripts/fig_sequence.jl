@@ -7,8 +7,8 @@ ongoing_dir = linux_gdrive
 #ongoing_dir = mac_gdrive
 files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
-streaks =   DataFrame(CSV.read(joinpath(files_loc,"streaks.csv"); types = columns_types))
-pokes =   DataFrame(CSV.read(joinpath(files_loc,"pokes.csv")))
+streaks =  (files_loc,"streaks.csv"); types = columns_types))
+pokes =  (files_loc,"pokes.csv")))
 ##
 union(streaks[:,:ExpDay])
 gd = combine(groupby(streaks,:ExpDay)) do dd

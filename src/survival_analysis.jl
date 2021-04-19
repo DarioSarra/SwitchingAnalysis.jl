@@ -1,8 +1,9 @@
 function mediansurvival_analysis(df,variable, grouping)
     dd1 = combine(groupby(df,[:MouseID,grouping]), variable => median => variable)
     dd2 = combine(groupby(dd1,grouping), variable => (t-> (Mean = mean(t),Sem = sem(t))) => AsTable)
-    @df dd2 scatter(string.(cols(grouping)), :Mean, yerror = :Sem, xlims = (-0.25,2.25),
+    plt = @df dd2 scatter(string.(cols(grouping)), :Mean, yerror = :Sem,
         xlabel = "Group", ylabel = "Median survival time", label = "")
+    return dd2, plt
 end
 
 function survivalrate_algorythm(variable; step = 0.05, xaxis = nothing)
@@ -26,6 +27,36 @@ function function_analysis(df,variable, f; grouping = nothing, step =0.05)
     sort!(dd1,[:MouseID,variable])
     dd2 = combine(groupby(dd1,[grouping,variable]), :fy =>(t-> (Mean = mean(t),Sem = sem(t))) => AsTable)
     sort!(dd2,variable)
-    @df dd2 plot(cols(variable),:Mean, ribbon = :Sem, group = cols(grouping))
-        # xlabel = "Time (lo10 s)", ylabel = "Survival", label = "")
+end
+
+function survival_analysis(df,times,events;grouping = nothing, step =0.05)
+    subgroups = isnothing(grouping) ? [:MouseID] : vcat(:MouseID,grouping)
+    xaxis = range(extrema(df[:, times])..., step = step)
+    dd1 = combine(groupby(df,subgroups), [times, events] => ((t,e)-> _survival(t,e; axis = xaxis)) => AsTable)
+    rename!(dd1, Dict(:Xaxis => times))
+    sort!(dd1,[:MouseID,times])
+    subgroups2 = isnothing(grouping) ? [times] : vcat(times,grouping)
+    dd2 = combine(groupby(dd1,subgroups2), :SurvRate =>(t-> (Mean = mean(t),Sem = sem(t))) => AsTable)
+    sort!(dd2,times)
+    return dd2
+end
+
+function _survival(times, events; axis = extrema(time), kwargs...)
+    km = fit(KaplanMeier, times, events)
+    surv = zeros(length(axis))
+    for (i, ax) in enumerate(axis)
+        if ax < km.times[1]
+            surv[i] = 1
+        elseif ax > km.times[end]
+            surv[i] = km.survival[end]
+        else
+            surv[i] = km.survival[searchsortedfirst(km.times, ax)]
+        end
+    end
+    return (Xaxis = collect(axis), SurvRate = surv)
+end
+
+function KM_median(KM::T) where T <:KaplanMeier
+    idx = findfirst(KM.survival .< 0.5)
+    isnothing(idx) ? missing : KM.times[idx-1]
 end

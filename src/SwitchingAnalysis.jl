@@ -1,8 +1,11 @@
 module SwitchingAnalysis
 
 using Reexport
-@reexport using DataFrames, CSV, Statistics, StatsBase,Plots, StatsPlots, KernelDensity, HypothesisTests
+@reexport using DataFrames, CSV, CategoricalArrays
+@reexport using Statistics, StatsBase,Plots, StatsPlots, KernelDensity, HypothesisTests
 @reexport using GLM, MixedModels
+@reexport using Survival
+
 using Distributions
 
 export mac_gdrive, linux_gdrive, files_dir, figs_dir, columns_types
@@ -13,7 +16,7 @@ export conf_ints, trim_conf_ints, trim_conf_ints!
 export process_streaks
 export count_cases, count_bouts!, process_bouts
 export CIq, wilcoxon
-export mediansurvival_analysis, survivalrate_algorythm, hazardrate_algorythm, function_analysis
+export mediansurvival_analysis, survivalrate_algorythm, hazardrate_algorythm, function_analysis, KaplanMeier, survival_analysis
 export KDensity, trim_dist, trim_dist!
 export ODC, calculate_odc
 export Likelyhood_Ratio_test
