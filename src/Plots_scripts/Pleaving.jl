@@ -43,7 +43,7 @@ savefig(joinpath(figs_loc,"ForagingMeeting/mediansurvival.pdf"))
 f_res = function_analysis(f_bouts,:Bout_duration, survivalrate_algorythm; grouping = :Treatment, step =0.05)
 Drug_colors!(f_res)
 @df f_res plot(:Bout_duration,:Mean, ribbon = :Sem, group = :Treatment,
-    color = :color, linecolor = :color, xlims = (0,20),
+    color = :color, linecolor = :color, xlims = (0,15),
     xlabel = "Consecutive unrewarded poking time", ylabel = "Survival rate")
 savefig(joinpath(figs_loc,"ForagingMeeting/SurvivalRate.pdf"))
 ##
@@ -72,15 +72,15 @@ res3 = combine(gd, [:PokeIn, :PokeOut] => ((i,o) -> (In_bout = i .- first(i), Ou
     :LastPoke => :Leave,
     :Protocol)
 transform!(res3, :Out_bout => zscore)
-verbBasic = @formula(Leave ~ 1 + Out_bout_zscore * Protocol +  (1+Out_bout_zscore+Protocol|MouseID));
-LeaveBasic = fit(MixedModel,verbBasic, res3, Bernoulli())
+verbFullBasic = @formula(Leave ~ 1 + Out_bout_zscore * Protocol +  (1+Out_bout_zscore+Protocol|MouseID));
+FullBasic = fit(MixedModel,verbFullBasic, res3, Bernoulli(), fast = true)
 
 verbSimpleBasic = @formula(Leave ~ 1 + Out_bout_zscore + Protocol +  (1+Out_bout_zscore+Protocol|MouseID));
-LeaveSimpleBasic = fit(MixedModel,verbSimpleBasic, res3, Bernoulli())
+SimpleBasic = fit(MixedModel,verbSimpleBasic, res3, Bernoulli(), fast = true)
 
 SimpleFullBasicTest = MixedModels.likelihoodratiotest(LeaveSimpleBasic,LeaveBasic)
 
-verbTreatment = @formula(Leave ~ 1 + Out_bout_zscore * Treatment + Protocol * Treatment +  (1+Out_bout_zscore+Protocol|MouseID));
-LeaveTreatment = fit(MixedModel,verbTreatment, res3, Bernoulli())
+verbTreatment = @formula(Leave ~ 1 + Out_bout_zscore * Protocol * Treatment +  (1+Out_bout_zscore+Protocol|MouseID));
+LeaveTreatment = fit(MixedModel,verbTreatment, res3, Bernoulli(), fast = true)
 
-TreatmentTest = MixedModels.likelihoodratiotest(LeaveSimpleBasic,LeaveTreatment)
+TreatmentTest = MixedModels.likelihoodratiotest(LeaveBasic,LeaveTreatment)
