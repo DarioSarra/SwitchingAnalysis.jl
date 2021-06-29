@@ -59,7 +59,7 @@ Pstate= Prew(1:20)
 open_html_table(Pstate)
 Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol]
 @df Pstate plot(:Poke,:Prew, group = :Protocol, linecolor = :Color, legend = false)
-@df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color, ylims = (0,1.1), yticks = 0:0.2:1)
+@df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","Distributions.pdf"))
 
 gd1 = groupby(streaks,[:Protocol,:MouseID,:Phase,:Treatment])
