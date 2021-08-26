@@ -79,6 +79,15 @@ res = DataFrame(Condition = ["Average", "At Leaving"],
 @df res scatter(:Condition,:Mean, yerror = :Sem, color = :grey, xlims = (0.25,1.75), label = false,ylims = (0.1,0.3), yticks = 0.0:0.1:0.3)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","RateAtLeaving.pdf"))
 
+filt_2 = filter(r->r.Treatment in ["Altanserin", "SB242084", "Control"],df2)
+Drug_colors!(filt_2)
+res = combine(groupby(filt_2, :Treatment)) do dd
+    DataFrame(Condition = ["Average", "At Leaving"],
+        Mean = [dd[1,:AverageRewRate_mean], dd[1,:Leaving_NextPrew_mean]],
+        Sem = [dd[1,:AverageRewRate_sem], dd[1,:Leaving_NextPrew_sem]])
+    end
+Drug_colors!(res)
+@df res scatter(:Condition,:Mean, yerror = :Sem, color = :color, xlims = (0.25,1.75), fillalpha=0.5, label = false)
 
 gd3 = groupby(df1,[:Protocol,:Treatment])
 df3 = combine(gd3, :Num_Rewards => mean, :Num_Rewards => sem,
