@@ -43,7 +43,8 @@ end
 
 
 function wilcoxon(df::AbstractDataFrame,x::Symbol, y::Symbol, by = :MouseID; f = mean)
-    df1 = combine([x,y] => (a,b) -> (Mean_x = f(a), Mean_y = f(b)), groupby(df,by))
+    # df1 = combine(groupby(df,by),[x,y] => (a,b) -> (Mean_x = f(a), Mean_y = f(b)))
+    df1 = combine(groupby(df,by),[x,y] .=> f .=>[:Mean_x, :Mean_y])
     check = SwitchingAnalysis.complete_vals(df1)
     if any(x -> !x, check)
         println( "got NaN values and dropped them")

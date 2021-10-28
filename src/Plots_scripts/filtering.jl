@@ -2,7 +2,6 @@
 
 using Revise
 using SwitchingAnalysis
-using HypothesisTests
 using BrowseTables
 using Plots.PlotMeasures
 
@@ -23,8 +22,19 @@ markerstrokecolor = :black)
 
 # turning Protocol from Float to string to allow for categorical analysis
 fullP[!,:Protocol] = [ismissing(x) ? missing : string(x) for x in fullP[:,:Protocol]]
+# remove short pokes and pass reward to the next poke in a trial
+gpokes = groupby(fullP,[:MouseID, :Day, :Trial])
+function correctshortpokes(r,p)
+    idxs =  findall(r .& (p.< 0.1))
+    for i in idxs
+        i+1 < length(p) && (r[i+1] = true)
+    end
+    r
+end
+fullP = transform(gpokes, [:Reward, :PokeDuration] => ((r,p) -> correctshortpokes(r,p)) => :Reward)
 pokes = filter(r-> !ismissing(r.Protocol) &&
     r.ExpDay > 5 && #remove early training days
+    r.PokeDuration > 0.1 &&
     r.Protocol in ["0.5","0.75","1.0"], #remove protocol "0.0": an exeption for wrong trials
     fullP)
 #removing events when the animal travel to a patch but doesn't poke
@@ -72,25 +82,53 @@ pokes.Stim_Day = expanded
 streaks = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
         process_streaks(dd)
     end
+streaks.Leaving_Prew = Prew.(streaks.Protocol, streaks.Num_pokes.+1)
 ##Process trials dataframe
 count_bouts!(pokes)
 bouts = combine(groupby(pokes,[:MouseID,:Day,:Phase,:Group,:Treatment, :Injection])) do dd
     process_bouts(dd)
 end
+## Filter before shuffling
+for df in [pokes, streaks]
+    filter!(r->
+        # r.Treatment in list &&
+        r.Day != Date(2016,07,13) &&
+        r.Trial < 51 &&
+        r.MouseID != "pc7",
+        df)
+    df[df.Phase .== "training", :Treatment] .= "Training"
+    df[df.Treatment .== "PreVehicle",:Treatment] .= "Control"
+    df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Treatment] =
+        [o ? "Optogenetic" : "Control" for o in df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Stim]]
+    df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
+    df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
+    df[!,:Treatment] = categorical(df.Treatment, ordered = false)
+    df.Protocol = parse.(Float64, df.Protocol)
+    levels!(df.Treatment,[
+        "Training",
+        "None",
+        "Saline",
+        "PostVehicle",
+        "Control",
+        "Altanserin",
+        "SB242084",
+        "Way_100135",
+        "Citalopram",
+        "Optogenetic",
+        "Methysergide",
+        "SB242084_opt",
+    ])
+end
 ##
-#= Filter dataset cutting the 5th percentile tail (either bilaterally or to the right extreme)
-if filtering results skewed a filter for values with a probability lower than 0.99 is applied =#
+# filter!(r-> r.Num_pokes >= 3, streaks)
+## Shuffle data
+shufgd = groupby(streaks,[:MouseID,:Treatment])
+transform!(shufgd,
+    :Num_pokes => (n-> randperm(length(n))) => :Shuffle_idx)
+shufgd = groupby(streaks,[:MouseID,:Treatment])
+transform!(shufgd,
+    [:Num_pokes, :Shuffle_idx] => ((n,s) -> [n[x] for x in s]) => :Shuffle_Num_pokes)
+streaks.Shuffle_Leaving_Prew = Prew.(streaks.Protocol, streaks.Shuffle_Num_pokes.+1)
+streaks.Shuffle_Leaving_NextPrew = Prew.(streaks.Protocol, streaks.Shuffle_Num_pokes.+1)
 
-# trim_conf_ints!(pokes,:Pre_Interpoke)
-# trim_conf_ints!(pokes,:PokeDuration)
-#
-# trim_conf_ints!(streaks,:Trial)
-#= the distribution of number of pokes before leaving results bimodal;
-    with early leaving seaprated from the rest. Analysis on trials
-    are therefore performed with at least 2 or more pokes before leaving=#
-# filter!(r-> 1< r.Num_pokes < 31, streaks)
-# trim_conf_ints!(streaks, :Num_pokes; percent = 99)
-# filter!(r-> r.Trial <61,streaks)
-##
-# @df streaks density(:Num_pokes)
-# @df trim_conf_ints(streaks, :Num_pokes) density(:Num_pokes)
+# streaks.Shuffle_Leaving_NextPrew =

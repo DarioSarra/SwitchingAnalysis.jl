@@ -1,7 +1,7 @@
 module SwitchingAnalysis
 
 using Reexport
-@reexport using DataFrames, CSV, CategoricalArrays
+@reexport using DataFrames, CSV, CategoricalArrays, Random, Dates
 @reexport using Statistics, StatsBase,Plots, StatsPlots, KernelDensity, HypothesisTests
 @reexport using GLM, MixedModels
 @reexport using Survival
@@ -21,6 +21,7 @@ export KDensity, trim_dist, trim_dist!
 export ODC, calculate_odc
 export Likelyhood_Ratio_test
 export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw, plot_wilcoxon_odc, plot_odc, odc_regression, plot_deltafromrew, plot_QODC
+export MVTprediction, testMVT_AvLeave, testMVT_Prot, plotMVT_AvLeave, plotMVT_Prot
 
 include("constants.jl")
 include("process_bouts.jl")
@@ -33,5 +34,6 @@ include("utilities.jl")
 include("KDensity.jl")
 include("Omission_Duty_Cycle.jl")
 include("DOFtests.jl")
+include("MVTpredictions.jl")
 
 end # module

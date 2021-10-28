@@ -2,10 +2,11 @@ include("filtering.jl");
 gr(size=(600,600), tick_orientation = :out, grid = false,
     linecolor = :black,
     markerstrokecolor = :black,
-    thickness_scaling = 2,
+    thickness_scaling = 1,
     markersize = 6)
-################################ Adjust Streaks table ##################################
-list = ["PreVehicle",
+## adjust tabless
+list = ["None",
+    "PreVehicle",
     "Altanserin",
     "SB242084",
     "Way_100135",
@@ -13,37 +14,44 @@ list = ["PreVehicle",
     "Citalopram",
     "SB242084_opt",
     "Saline"]
-filter!(r->r.Treatment in list &&
-    r.Trial < 51 &&
-    r.MouseID != "pc7",
-    streaks)
-
-streaks[streaks.Treatment .== "PreVehicle",:Treatment] .= "Control"
-streaks[streaks.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "Control" for o in streaks[streaks.Treatment .== "Saline",:Stim]]
-streaks[streaks.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
-streaks[streaks.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in streaks[streaks.Treatment .== "SB242084_opt",:Stim]]
+for df in [pokes, streaks]
+    filter!(r->r.Treatment in list &&
+        r.Trial < 51 &&
+        r.MouseID != "pc7",
+        df)
+    (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
+    df[df.Treatment .== "PreVehicle",:Treatment] .= "Control"
+    (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
+    df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Treatment] =
+        [o ? "Optogenetic" : "Control" for o in df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Stim]]
+    df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
+    df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
+    df[!,:Treatment] = categorical(df.Treatment, ordered = false)
+end
 streaks[!,:ROILeavingTime] = streaks.Stop_trial .- streaks.Stop_poking
-streaks[!,:Treatment] = categorical(streaks.Treatment, ordered = false)
-levels!(streaks.Treatment,["Control",
-    "Altanserin",
-    "SB242084",
-    "Way_100135",
-    "Citalopram",
-    "Optogenetic",
-    "Methysergide",
-    "SB242084_opt"
+for df in [pokes, streaks]
+    levels!(df.Treatment,["None",
+        "Control",
+        "Altanserin",
+        "SB242084",
+        "Way_100135",
+        "Citalopram",
+        "Optogenetic",
+        "Methysergide",
+        "SB242084_opt",
+        "Saline"
     ])
+end
 levels(streaks.Treatment)
-################################ Adjust Pokes table ##################################
-filter!(r->r.Treatment in list &&
-    r.Trial < 51 &&
-    r.MouseID != "pc7",
-    pokes)
-pokes[pokes.Treatment .== "PreVehicle",:Treatment] .= "Control"
-pokes[pokes.Treatment .== "Saline",:Treatment] = [o ? "Optogenetic" : "Control" for o in pokes[pokes.Treatment .== "Saline",:Stim]]
-pokes[pokes.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
-pokes[pokes.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in pokes[pokes.Treatment .== "SB242084_opt",:Stim]]
 
+check = combine(groupby(pokes,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
+    open_html_table(sort!(check,:Day))
+    check = combine(groupby(streaks,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
+    open_html_table(sort!(check,:Day))
+pcheck = filter(r-> r.Treatment == "Citalopram", pokes)
+union(pcheck.MouseID)
+union(pcheck.Treatment)
+###
 
 filt_1 = filter(r->r.Treatment == "Control",pokes)
 gd1 = groupby(filt_1,[:MouseID,:TimeFromLeaving,:Protocol])
@@ -53,10 +61,9 @@ df3 = combine(gd2, :CumRewTrial => mean, :CumRewTrial => sem)
 Protocol_colors!(df3)
 
 @df df3 scatter(:TimeFromLeaving,:CumRewTrial_mean, group = :Protocol, xlims = (0,30), markersize = 4, color = :color)
-
+union(fullS.Treatment)
 ################################ Fig2 scatter  controls ##################################
 Pstate= Prew(1:20)
-open_html_table(Pstate)
 Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol]
 @df Pstate plot(:Poke,:Prew, group = :Protocol, linecolor = :Color, legend = false)
 @df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color)
@@ -69,16 +76,48 @@ df1 = combine(gd1, :Num_Rewards => mean => :Num_Rewards,
     :Leaving_NextPrew => mean => :Leaving_NextPrew,
     :AverageRewRate => mean => :AverageRewRate)
 
+# MVT 1: leaving at average reward rate
 gd2 = groupby(df1,:Treatment)
 df2 = combine(gd2, :AverageRewRate => mean, :AverageRewRate => sem,
     :Leaving_NextPrew => mean, :Leaving_NextPrew => sem)
-filt_2 = filter(r->r.Treatment == "Control",df2)
+filt_2 = filter(r->r.Treatment == "None",df2)
 res = DataFrame(Condition = ["Average", "At Leaving"],
     Mean = [filt_2[1,:AverageRewRate_mean], filt_2[1,:Leaving_NextPrew_mean]],
     Sem = [filt_2[1,:AverageRewRate_sem], filt_2[1,:Leaving_NextPrew_sem]])
-@df res scatter(:Condition,:Mean, yerror = :Sem, color = :grey, xlims = (0.25,1.75), label = false,ylims = (0.1,0.3), yticks = 0.0:0.1:0.3)
+@df res scatter(:Condition,:Mean, yerror = :Sem, color = :grey, xlims = (0.25,1.75), label = false,
+    yticks = 0.0:0.05:0.3)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","RateAtLeaving.pdf"))
 
+df3 = combine(groupby(df1,[:Treatment])) do dd
+    wilcoxon(dd,:AverageRewRate, :Leaving_NextPrew; f = x -> mean(skipmissing(x)))
+end
+
+## MVT 2: num pokes per patch quality
+gd_num = groupby(df1, [:Treatment, :Protocol])
+num_df = combine(gd_num, :Num_pokes .=> [mean, sem])
+union(fullS.Phase)
+
+f_num = filter(r->r.Treatment == "None", num_df)
+Protocol_colors!(f_num)
+@df f_num scatter(:Protocol, :Num_pokes_mean, yerror = :Num_pokes_sem, color = :color, xflip = true, legend = false)
+f0_num = @formula (Num_pokes ~ 1 + (1|MouseID))
+m0_num = fit(MixedModel, f0_num, streaks)
+f1_num = @formula (Num_pokes ~ 1 + Protocol + (1|MouseID))
+m1_num = fit(MixedModel, f1_num, streaks)
+MixedModels.likelihoodratiotest(m0_num, m1_num)
+## MVT 3: rew rate at leaving per patch quality
+df1.Leaving_NextPrew
+gd_leave = groupby(df1, [:Treatment, :Protocol])
+leave_df = combine(gd_leave, :Leaving_NextPrew .=> [mean, sem] .=> [:LeaveRate_mean, :LeaveRate_sem])
+f_leave = filter(r->r.Treatment == "None", leave_df)
+Protocol_colors!(f_leave)
+@df f_leave scatter(:Protocol, :LeaveRate_mean, yerror = :LeaveRate_sem, color = :color, xflip = true, legend = false)
+f0_leave = @formula (Leaving_NextPrew ~ 1 + (1|MouseID))
+m0_leave = fit(MixedModel, f0_leave, streaks)
+f1_leave = @formula (Leaving_NextPrew ~ 1 + Protocol + (1|MouseID))
+m1_leave = fit(MixedModel, f1_leave, streaks)
+MixedModels.likelihoodratiotest(m0_leave, m1_leave)
+##
 filt_2 = filter(r->r.Treatment in ["Altanserin", "SB242084", "Control"],df2)
 Drug_colors!(filt_2)
 res = combine(groupby(filt_2, :Treatment)) do dd
@@ -87,27 +126,33 @@ res = combine(groupby(filt_2, :Treatment)) do dd
         Sem = [dd[1,:AverageRewRate_sem], dd[1,:Leaving_NextPrew_sem]])
     end
 Drug_colors!(res)
-@df res scatter(:Condition,:Mean, yerror = :Sem, color = :color, xlims = (0.25,1.75), fillalpha=0.5, label = false)
+@df res scatter(:Condition,:Mean, yerror = :Sem, color = :color, xlims = (0.25,1.75),
+    fillalpha=0.5, label = false)
 
 gd3 = groupby(df1,[:Protocol,:Treatment])
 df3 = combine(gd3, :Num_Rewards => mean, :Num_Rewards => sem,
     :Num_pokes => mean, :Num_pokes => sem,
     :AfterLast => mean, :AfterLast => sem,
     :Leaving_NextPrew => mean, :Leaving_NextPrew => sem)
-
+##
 filt_3 = filter(r->r.Treatment == "Control",df3)
 sort!(filt_3, :Protocol)
+
 filt_3[!,:Color] = [get(protocol_colors,x,:grey) for x in filt_3.Protocol]
-@df filt_3 scatter(:Protocol, :Num_Rewards_mean, yerror = :Num_Rewards_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (1,5), yticks = 0:0.5:10)
+
+@df filt_3 scatter(:Protocol, :Num_Rewards_mean, yerror = :Num_Rewards_sem, label = false, color = :Color,
+    xlims = (0.25,2.75), ylims = (1,5), yticks = 0:0.5:10)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumRewards.pdf"))
-@df filt_3 scatter(:Protocol, :Num_pokes_mean, yerror = :Num_pokes_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (11,15))
+@df filt_3 scatter(:Protocol, :Num_pokes_mean, yerror = :Num_pokes_sem,
+    label = false, color = :Color, xlims = (0.25,2.75), ylims = (11,15))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","NumPokes.pdf"))
-@df filt_3 scatter(:Protocol, :AfterLast_mean, yerror = :AfterLast_sem, label = false, color = :Color, xlims = (0.25,2.75), ylims = (5,7))
+@df filt_3 scatter(:Protocol, :AfterLast_mean, yerror = :AfterLast_sem, label = false,
+    color = :Color, xlims = (0.25,2.75), ylims = (5,7))
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","AfterLast.pdf"))
-@df filt_3 scatter(:Protocol, :Leaving_NextPrew_mean, yerror = :Leaving_NextPrew_sem,label = false, color = :Color, xlims = (0.25,2.75), ylims = (0.1,0.3), yticks = 0.0:0.1:0.3)
+@df filt_3 scatter(:Protocol, :Leaving_NextPrew_mean, yerror = :Leaving_NextPrew_sem,
+    label = false, color = :Color, xlims = (0.25,2.75), lims = (0.1,0.3), yticks = 0.0:0.1:0.3)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig2","Prew.pdf"))
-
-
+##
 testdf = filter(r->r.Treatment == "Control",streaks)
 testdf[!,:NumericalProt] = parse.(Float64, testdf.Protocol)
 NR_m1 = fit!(LinearMixedModel(@formula(Num_Rewards ~ 1 + (1|MouseID)),testdf))
@@ -125,12 +170,13 @@ Likelyhood_Ratio_test(PR_m1,PR_m2)
 
 # fm4 = fit(MixedModel,@formula(AfterLast ~ 1 + (1|MouseID)),age_df,Poisson())
 ################################ Fig3 selective protocol effect ##################################
-df1 = combine(groupby(streaks,:Phase)) do dd
-    subdf = unstack(dd,:Treatment,:ROI_Leaving_Time)
+fstreaks = filter(r-> r.Treatment in ["Control","Altanserin","SB242084","Way_100135","Methysergide","Citalopram", "Optogenetic","SB242084_opt"], streaks)
+df1 = combine(groupby(fstreaks,:Phase)) do dd
+    subdf = unstack(dd,:Treatment,:Num_Rewards)
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)
 end
-
+open_html_table(df1)
 df2 = combine(groupby(df1,[:Phase])) do dd
     wilcoxon(dd,:Control, :Drug; f = x -> mean(skipmissing(x)))
 end
@@ -177,7 +223,7 @@ savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig3","Sel_Prot_AfterLast.pdf"))
 @df dp scatter(:Protocol, :Leaving_NextPrew_median, yerror = :Leaving_NextPrew_CIq, group = :Treatment, color = :color, xflip = true, yticks = 0.1:0.1:0.5, ylims = (0.1,0.5), xlims = (0.25,2.75), label = false)
 savefig(joinpath(figs_loc,"LabMeetingJan2021","Fig3","Sel_Prot_PrewLeaving.pdf"))
 ################################ Fig4 global protocol effect ##################################
-df1 = combine(groupby(streaks,:Phase)) do dd
+df1 = combine(groupby(fstreaks,:Phase)) do dd
     subdf = unstack(dd,:Treatment,:Num_Rewards)
     current_drug = Symbol(subdf[1,:Phase])
     rename!(subdf, current_drug => :Drug)

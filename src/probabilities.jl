@@ -2,6 +2,10 @@ function Prew(protocol::Float64,poke::Int64)
     protocol*(ℯ^(-(poke-1)/5))
 end
 
+function Prew(protocol::String,poke::Int64)
+    Prew(parse(Float64,protocol),poke)
+end
+
 function Prew(protocol,poke::AbstractVector{Int64})
     Prew.(protocol,poke)
 end

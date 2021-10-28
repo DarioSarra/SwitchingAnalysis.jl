@@ -25,7 +25,10 @@ function process_streaks(df::DataFrames.AbstractDataFrame)
         Stim = dd[1,:Stim],
         Stim_Day = dd[1,:Stim_Day],
         AverageRewRate = mean(dd.AverageRewRate),
-        Leaving_NextPrew = dd[end,:Next_Prew]
+        # AverageRewRate = dd[end,:AverageRewRate],
+        Leaving_NextPrew = dd[end,:Next_Prew],
+        LeavingRewRate = dd[end,:InstRewRate],
+        LeaveWithReward = dd[end,:Reward]
         )
         return dt
     end

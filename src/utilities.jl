@@ -56,8 +56,7 @@ function Protocol_names!(df)
 end
 
 function Protocol_colors!(df)
-    Protocol_names!(df)
-    df[!,:color] = [get(protocol_colors,x,RGB(0,0,0)) for x in df.env]
+    df[!,:color] = [get(protocol_colors,x,RGB(0,0,0)) for x in df.Protocol]
     return df
 end
 

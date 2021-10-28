@@ -9,53 +9,10 @@ check = combine(groupby(pokes,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim
     check = combine(groupby(streaks,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
     open_html_table(sort!(check,:Day))
 ################################ Adjust Streaks table ##################################
-list = ["PreVehicle",
-    "Altanserin",
-    "SB242084",
-    "Way_100135",
-    "Methysergide",
-    "Citalopram",
-    "SB242084_opt",
-    "Saline"]
-for df in [pokes, streaks]
-    filter!(r->r.Treatment in list &&
-        r.Trial < 51 &&
-        r.MouseID != "pc7",
-        df)
-    (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
-    df[df.Treatment .== "PreVehicle",:Treatment] .= "Control"
-    (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
-    df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Treatment] =
-        [o ? "Optogenetic" : "Control" for o in df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Stim]]
-    df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
-    df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
-    df[!,:Treatment] = categorical(df.Treatment, ordered = false)
-end
-streaks[!,:ROILeavingTime] = streaks.Stop_trial .- streaks.Stop_poking
-for df in [pokes, streaks]
-    levels!(df.Treatment,["Control",
-        "Altanserin",
-        "SB242084",
-        "Way_100135",
-        "Citalopram",
-        "Optogenetic",
-        "Methysergide",
-        "SB242084_opt",
-        "Saline"
-        ])
-end
-levels(streaks.Treatment)
-
-check = combine(groupby(pokes,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
-    open_html_table(sort!(check,:Day))
-    check = combine(groupby(streaks,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
-    open_html_table(sort!(check,:Day))
-pcheck = filter(r-> r.Treatment == "Citalopram", pokes)
-union(pcheck.MouseID)
-union(pcheck.Treatment)
 
 ################################ Adjust Pokes table ##################################
 filt_1 = filter(r->r.Treatment == "Control",pokes)
+union(pokes.Treatment)
 gd1 = groupby(filt_1,[:MouseID,:TimeFromLeaving,:Protocol])
 df2 = combine(gd1, :CumRewTrial => mean => :CumRewTrial)
 gd2 = groupby(df2,[:Protocol,:TimeFromLeaving])
@@ -182,9 +139,11 @@ open_html_table(coef3)
 # travel
 pretravel = filter(r->r.Treatment in ["Altanserin", "SB242084", "Control", "Citalopram", "Optogenetic"],streaks)
 trav1 = combine(groupby(pretravel,[:MouseID,:Treatment]),
+    # :ROI_Leaving_Time => median => :Travel,
     :Poking_Travel_to => median => :Travel,
     :Poking_duration => median => :Leaving)
 # Poking
+pretravel.ROI_Leaving_Time
 
 function pokecost(rvec,pokevec)
     v = pokevec[.!rvec]
@@ -208,7 +167,7 @@ timedf4 = combine(groupby(timedf3,:Treatment)) do dd
 end
 open_html_table(timedf4)
 Drug_colors!(timedf4)
-@df timedf4 scatter(string.(:Treatment), :Median, yerror = :CI, color = :color, legend = false)
+@df timedf4 scatter(string.(:Treatment), :Median, color = :color, legend = false)
 Plots.abline!(0,0,color = :black, linestyle = :dash)
 ##GLM
 fm = @formula(Diff ~ 1 + Treatment + (1|MouseID+Treatment))
@@ -255,6 +214,12 @@ res[!,:Diff] = res.Leave .- res.OptLeave
 fm = @formula(Diff ~ 1 + Treatment + (1|MouseID+Treatment))
 fm1 = fit(MixedModel, fm, res)
 ##
+prov = filter(r-> r.Treatment == "Control", fstreaks)
+prov.Trial_Travel_to
+prov2 = combine(groupby(prov,:MouseID), :Poking_Travel_to => mean, :Trial_Travel_to => mean)
+combine(prov2,:Trial_Travel_to_mean .=> [mean,std, sem] .=> [:Mean,:Std,:Sem])
+combine(prov,:Trial_Travel_to .=> [mean,std, sem])
+##
 reswilc = combine(groupby(res,:Treatment)) do dd
     x = Vector(dd.Diff)
     wilcoxon(x)
@@ -262,3 +227,15 @@ end
 Drug_colors!(reswilc)
 @df reswilc scatter(string.(:Treatment), :Median, yerror = :CI, color = :color, legend = false)
 Plots.abline!(0,0,color = :black, linestyle = :dash)
+##
+
+##
+function randpg()
+    points = []
+    for i in 1:6
+        v = rand(1:6,4)
+        deleteat!(v,findmin(v)[2])
+        push!(points, sum(v))
+    end
+    return points
+end

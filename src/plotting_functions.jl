@@ -50,6 +50,23 @@ function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode
     return with_err
 end
 
+function frequency(df::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode = :sem)
+    pre_err = combine(groupby(df, Err)) do dd
+        dx = countmap(dd[:, Xvar])
+        val = []
+        freq = []
+        for (k,v) in dx
+            push!(val, k)
+            push!(freq,v)
+        end
+        DataFrame(Xaxis = val, Freq = freq./nrow(dd))
+    end
+    with_err = combine(groupby(pre_err,:Val), :Freq .=> (mean,sem) .=> [:Mean, :ERR])
+    dropnan!(with_err)
+    sort!(with_err,:Xaxis)
+
+end
+
 function effect_size(df::AbstractDataFrame,Effectvar::Symbol,Yvar::Symbol; Err = :MouseID, baseline = nothing)
     if length(union(df[:,Effectvar])) != 2
         error("Effect variable has more than 2 levels")
