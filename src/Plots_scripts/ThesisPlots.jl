@@ -16,7 +16,7 @@ example.Side
 m = 10
 @df example scatter(:Trial,:Poke_within_Trial, markershape = :square, markersize = 4, label = false, mswidth = 1, xticks = 0:10:180,
     size = (t_lim*m,20*m), markercolor = :outcome, ylims = (0,20), thickness_scaling = 1)
-savefig(joinpath(figs_loc,"Thesis","Fig1","ExampleSession.png"))
+savefig(joinpath(figs_loc,"Thesis","Fig1","C-ExampleSession.png"))
 ## Distributions
 Pstate= Prew(1:20)
 Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol];
@@ -24,7 +24,7 @@ Pstate[!,:Color] = [get(protocol_colors,x,:grey) for x in Pstate.Protocol];
     @df Pstate scatter!(:Poke,:Prew, group = :Protocol, color = :Color, mswidth = 0)
     xlabel!("Poke number")
     ylabel!("Reward probability")
-savefig(joinpath(figs_loc,"Thesis","Fig1","Distributions.pdf"))
+savefig(joinpath(figs_loc,"Thesis","Fig1","D-Distributions.pdf"))
 ##
 check = combine(groupby(orig,[:Phase,:Day]),:Treatment => t -> [union(t)],:Stim => t -> [union(t)])
 open_html_table(sort!(check,:Day))
@@ -85,13 +85,30 @@ function test_leave(df, treatment)
     OneSampleTTest(df1.AverageRewRate, df1.LeavingRewRate)
     # wilcoxon(df0,:AverageRewRate, :LeavingRewRate; f = x -> mean(skipmissing(x)))
 end
+## Prew at leaving vs Average
+## CHECK THIS FOR THE DRUGS
+plot_leave(streaks,"Control")
+    xaxis!(xlims = (0.5,2.5), xlabel = "Place holder")
+    yaxis!(yticks = (0:0.02:0.4), ylabel = "Reward rate", ylims = (0.19,0.24))
+    plot!([1,2],[0.235,0.235])
+    annotate!(1.5,0.238,Plots.text("n.s.",16))
+savefig(joinpath(figs_loc,"Thesis","Fig1","E-RewRate.pdf"))
+test_leave(streaks,"Control")
+## Prew at leaving per protocol
+plot_perprotocol(streaks, :Leaving_NextPrew, "Control")
+    xlabel!("Trial type")
+    yaxis!(yticks = (0:0.05:0.4),  ylabel = "Reward probability", ylims = (0.23,0.31))
+    plot!([1,3],[0.3025,0.3025])
+    annotate!(2,0.31,Plots.text("n.s.",16))
+savefig(joinpath(figs_loc,"Thesis","Fig1","F-Prew_Protocol.pdf"))
+test_perprotocol(streaks, :Leaving_NextPrew, "Control")
 ## Rewards per protocol
 plot_perprotocol(streaks, :Num_Rewards, "Control")
     xlabel!("Trial type")
     yaxis!(ylabel = "Rewards per trial", yticks = 0:1:5,ylims = (1,5.5))
     plot!([1,3],[5.3,5.3])
     annotate!(2,5.4,Plots.text("*",16))
-savefig(joinpath(figs_loc,"Thesis","Fig1","E-Rewards.pdf"))
+savefig(joinpath(figs_loc,"Thesis","Fig1","G-Rewards.pdf"))
 test_perprotocol(streaks, :Num_Rewards, "Control")
 ## Pokes per protocol
 plot_perprotocol(streaks, :Num_pokes, "Control")
@@ -99,7 +116,7 @@ plot_perprotocol(streaks, :Num_pokes, "Control")
     yaxis!(yticks = (0:1:15), ylabel = "Pokes per trial", ylims = (11.1,15.2))
     plot!([1,3],[14.9,14.9])
     annotate!(2,15,Plots.text("*",16))
-savefig(joinpath(figs_loc,"Thesis","Fig1","F-Pokes.pdf"))
+savefig(joinpath(figs_loc,"Thesis","Fig1","H-Pokes.pdf"))
 test_perprotocol(streaks, :Num_pokes, "Control")
 ## Slope After Last
 tr_streaks = filter(r->r.Treatment =="Control" &&
@@ -113,34 +130,16 @@ tr_streaks = filter(r->r.Treatment =="Control" &&
 @df df2 plot(:Last_Reward, :AfterLast_mean, ribbon = :AfterLast_sem, xlims = (1,15),
     linecolor = :grey, fillcolor = :grey, label = false)
     xlabel!("Last rewarded poke")
-    ylabel!("Pokes after last reward")
-savefig(joinpath(figs_loc,"Thesis","Fig1","G-Slope.pdf"))
+    yaxis!(ylabel = "Pokes after last reward", ylims = (4.8,8), yticks = 0:1:10)
+savefig(joinpath(figs_loc,"Thesis","Fig1","I-Slope.pdf"))
 ## AfterLast
 plot_perprotocol(streaks, :AfterLast, "Control")
     xlabel!("Trial type")
-    yaxis!(yticks = (0:1:8), ylabel = "Pokes after last reward")#, ylims = (5.7,7.3))
-    plot!([1,3],[7.1,7.1])
-    annotate!(2,7.2,Plots.text("*",16))
-savefig(joinpath(figs_loc,"Thesis","Fig1","H-AfterLast.pdf"))
+    yaxis!(yticks = (0:1:8), ylabel = "Pokes after last reward", ylims = (5,7))
+    plot!([1,3],[6.8,6.8])
+    annotate!(2,6.85,Plots.text("*",16))
+savefig(joinpath(figs_loc,"Thesis","Fig1","J-AfterLast.pdf"))
 test_perprotocol(streaks, :AfterLast, "Control")
-## Prew at leaving vs Average
-## CHECK THIS FOR THE DRUGS
-plot_leave(streaks,"Control")
-    xaxis!(xlims = (0.5,2.5), xlabel = "Place holder")
-    yaxis!(yticks = (0:0.04:0.4), ylabel = "Reward rate") #, ylims = (0.16,0.24)
-    plot!([1,2],[0.235,0.235])
-    annotate!(1.5,0.24,Plots.text("n.s.",16))
-savefig(joinpath(figs_loc,"Thesis","Fig1","I-RewRate.pdf"))
-test_leave(streaks,"Control")
-## Prew at leaving per protocol
-streaks.Leaving_NextPrew
-plot_perprotocol(streaks, :Leaving_NextPrew, "Control")
-    xlabel!("Trial type")
-    yaxis!(yticks = (0:0.04:0.4),  ylabel = "Reward probability") #ylims = (0.16,0.24),
-    plot!([1,3],[0.3015,0.3015])
-    annotate!(2,0.303,Plots.text("n.s.",16))
-savefig(joinpath(figs_loc,"Thesis","Fig1","J-Prew_Protocol.pdf"))
-test_perprotocol(streaks, :Leaving_NextPrew, "Control")
 
 #################################################################
 #################################################################
@@ -209,25 +208,31 @@ end
 test_sel = filter(r->r.Phase in ["SB242084","Altanserin", "Control"] &&
     r.Treatment in ["SB242084","Altanserin", "Control"],streaks)
 Drug_colors!(test_sel)
-## Num pokes
-plot_drugs(test_sel, :Num_pokes)
-    ylabel!("Pokes per trial")
-pokes_sel_m1,pokes_sel_m2, pokes_sel_m3, pokes_sel_l1, pokes_sel_l2 =
-    test_drugs(test_sel,:Num_pokes)
-## AfterLast
-plot_drugs(test_sel, :AfterLast)
-    ylabel!("Pokes after last reward")
-after_sel_m1,after_sel_m2, after_sel_m3, after_sel_l1, after_sel_l2 =
-    test_drugs(test_sel,:AfterLast)
 ## Prew at leaving
 plot_drugs(test_sel, :Leaving_NextPrew)
     ylabel!("Reward probability")
 prew_sel_m1,prew_sel_m2, prew_sel_m3, prew_sel_l1, prew_sel_l2 =
     test_drugs(test_sel,:Leaving_NextPrew)
+savefig(joinpath(figs_loc,"Thesis","Fig2","A-Sel_RewProb.pdf"))
+## Num pokes
+plot_drugs(test_sel, :Num_pokes)
+    ylabel!("Pokes per trial")
+pokes_sel_m1,pokes_sel_m2, pokes_sel_m3, pokes_sel_l1, pokes_sel_l2 =
+    test_drugs(test_sel,:Num_pokes)
+savefig(joinpath(figs_loc,"Thesis","Fig2","B-Sel_Pokes.pdf"))
+## AfterLast
+plot_drugs(test_sel, :AfterLast)
+    ylabel!("Pokes after last reward")
+after_sel_m1,after_sel_m2, after_sel_m3, after_sel_l1, after_sel_l2 =
+    test_drugs(test_sel,:AfterLast)
+savefig(joinpath(figs_loc,"Thesis","Fig2","C-Sel_AfterLast.pdf"))
 ## T test Reward number
 tt = Ttest_drugs(test_sel, :Num_Rewards)
 plot_Ttest(test_sel, :Num_Rewards)
-    ylabel!("Delta number of reward\n(treatment - control)")
+    ylabel!("Delta number of reward")
+    ylims!(-0.6,0.32)
+    annotate!([(0.5,0.3,Plots.text("n.s.",16)), (1.5,0.28,Plots.text("*",16))])
+savefig(joinpath(figs_loc,"Thesis","Fig2","D-Sel_RewNum.pdf"))
 #################################################################
 #################################################################
 #################################################################
@@ -236,22 +241,28 @@ test_glo = filter(r->r.Treatment in ["Optogenetic","Citalopram", "Control"] &&
     r.Treatment in ["Optogenetic","Citalopram", "Control"],streaks)
 Drug_colors!(test_glo)
 
-## Num pokes
-plot_drugs(test_glo, :Num_pokes)
-    ylabel!("Pokes per trial")
-pokes_glo_m1,pokes_glo_m2, pokes_glo_m3, pokes_glo_l1, pokes_glo_l2 =
-    test_drugs(test_glo,:Num_pokes)
-## AfterLast
-plot_drugs(test_glo, :AfterLast)
-    ylabel!("Pokes after last reward")
-after_glo_m1,after_glo_m2, after_glo_m3, after_glo_l1, after_glo_l2 =
-    test_drugs(test_glo,:AfterLast)
 ## Prew at leaving
 plot_drugs(test_glo, :Leaving_NextPrew)
     ylabel!("Reward probability")
-prew_glo_m1,prew_glo_m2, prew_glo_m3, prew_glo_l1, prew_glo_l2 =
+prew_sel_m1,prew_sel_m2, prew_sel_m3, prew_sel_l1, prew_sel_l2 =
     test_drugs(test_glo,:Leaving_NextPrew)
-## T test Reward Number
+savefig(joinpath(figs_loc,"Thesis","Fig3","A-Sel_RewProb.pdf"))
+## Num pokes
+plot_drugs(test_glo, :Num_pokes)
+    ylabel!("Pokes per trial")
+pokes_sel_m1,pokes_sel_m2, pokes_sel_m3, pokes_sel_l1, pokes_sel_l2 =
+    test_drugs(test_glo,:Num_pokes)
+savefig(joinpath(figs_loc,"Thesis","Fig3","B-Sel_Pokes.pdf"))
+## AfterLast
+plot_drugs(test_glo, :AfterLast)
+    ylabel!("Pokes after last reward")
+after_sel_m1,after_sel_m2, after_sel_m3, after_sel_l1, after_sel_l2 =
+    test_drugs(test_glo,:AfterLast)
+savefig(joinpath(figs_loc,"Thesis","Fig3","C-Sel_AfterLast.pdf"))
+## T test Reward number
 tt = Ttest_drugs(test_glo, :Num_Rewards)
 plot_Ttest(test_glo, :Num_Rewards)
-    ylabel!("Delta number of reward\n(treatment - control)")
+    ylabel!("Delta number of reward")
+    ylims!(-0.51,0.2)
+    annotate!([(0.5,0.185,Plots.text("n.s.",16)), (1.5,0.165,Plots.text("*",16))])
+savefig(joinpath(figs_loc,"Thesis","Fig3","D-Sel_RewNum.pdf"))
