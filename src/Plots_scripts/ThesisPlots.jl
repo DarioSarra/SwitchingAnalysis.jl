@@ -90,7 +90,7 @@ end
 ## Prew at leaving vs Average
 ## CHECK THIS FOR THE DRUGS
 df = plot_leave(streaks,"Control")
-    xaxis!(xlims = (0.5,2.5), xlabel = "Place holder")
+    xaxis!(xlims = (0.5,2.5), xlabel = "Interval")
     yaxis!(yticks = (0:0.02:0.4), ylabel = "Reward rate", ylims = (0.19,0.24))
     plot!([1,2],[0.235,0.235])
     annotate!(1.5,0.238,Plots.text("n.s.",16))
@@ -205,13 +205,13 @@ function collect_Ttest(t::Dict{Symbol,OneSampleTTest})
     res
 end
 
-function plot_Ttest(df, var)
+function plot_Ttest(df, var; xlims = (0,2))
     tt = Ttest_drugs(df, var)
     res = collect_Ttest(tt)
     Drug_colors!(res)
     @df res scatter(:Treatment, :Mean, yerror = :CI,
         color = :color, legend = false,
-        xlabel = "Treatment", xlims = (0,2))
+        xlabel = "Treatment", xlims = xlims)
         Plots.abline!(0,0,color = :black, linestyle = :dash)
 end
 ## Figure 3 Selective
@@ -302,3 +302,20 @@ open_html_table(df1)
 m1 = fit!(LinearMixedModel(@formula(AfterLast ~ 1 + Treatment + Phase + (1|MouseID)),df1))
 m2 = fit!(LinearMixedModel(@formula(AfterLast ~ 1 + Treatment * Phase + (1|MouseID)),df1))
 l1 = MixedModels.likelihoodratiotest(m1,m2)
+## Thesis recap
+recap = filter(r->r.Phase in ["Altanserin", "SB242084","Optogenetic","Citalopram", "Control"] &&
+    r.Treatment in ["Altanserin", "SB242084","Optogenetic","Citalopram", "Control"],streaks)
+Drug_colors!(recap)
+tt = Ttest_drugs(recap, :Num_Rewards)
+res = collect_Ttest(tt)
+res = res[[1,4,2,3],:]
+Drug_colors!(res)
+@df res scatter(:Treatment, :Mean, yerror = :CI,
+    color = :color, legend = false)
+    Plots.abline!(0,0,color = :black, linestyle = :dash)
+    yaxis!(ylabel = "Delta number of rewards")
+    xaxis!(xlabel = "Treatment", xlims = (0.2,3.8), tickfontsize = 6)
+savefig(joinpath(figs_loc,"Thesis","recapNumrewards.pdf"))
+    # annotate!([(0.5,2.2,Plots.text("*",16)),
+    # (1.5,2.2,Plots.text("*",16)),
+    # ])
