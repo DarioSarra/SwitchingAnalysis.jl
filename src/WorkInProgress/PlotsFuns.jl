@@ -1,8 +1,8 @@
-```
+"""
     plot_perprotocol(df,var, treatment)
-    Returns a plot were the mean + sem of 'var' is plotted along the protocols
-    only for 'df' data belonging to 'treatment'. The value "Control" is used for general behavior. 
-```
+    Returns a plot were the mean + sem of `var` is plotted along the protocols
+    only for `df` data belonging to `treatment`. The value "Control" is used for general behavior.
+"""
 
 function plot_perprotocol(df,var, treatment)
     df0 = filter(r-> r.Treatment == treatment, df)
@@ -15,12 +15,12 @@ function plot_perprotocol(df,var, treatment)
     xticks = ([1,2,3],["Hard", "Medium","Easy"]), xlims = (0.5,3.5))
 end
 
-```
+"""
     plot_leave(df,treatment)
 
     plot mean + sem of average reward rate and reward rate at leaving
-    for 'df' data belonging to 'treatment'. The value "Control" is used for general behavior.
-```
+    for `df` data belonging to `treatment`. The value "Control" is used for general behavior.
+"""
 function plot_leave(df,treatment)
     df0 = filter(r-> r.Treatment == treatment && !r.LeaveWithReward && r.Trial <= 40 , df)
     nrow(df0) == 0 && error("filtered out everything")
@@ -38,11 +38,11 @@ function plot_leave(df,treatment)
     return df3
 end
 
-```
+"""
     plot_drugs(df,var)
-    Returns a plot were the mean + sem of 'var' is plotted along the protocols
+    Returns a plot were the mean + sem of `var` is plotted along the protocols
     splitted by treatment
-```
+"""
 function plot_drugs(df,var)
     df1 = transform(df, var => :Y)
     gd1 = groupby(df1,[:Protocol,:MouseID,:Phase,:Treatment])
@@ -56,11 +56,11 @@ function plot_drugs(df,var)
         xlabel = "Trial type")
 end
 
-```
+"""
     plot_Ttest(df, var; xlims = (0,2))
-    calls function Ttest_drugs to perform a Ttest on 'var' for each drug in df
+    calls function Ttest_drugs to perform a Ttest on `var` for each drug in df
     then plots the results in a scatter with drugs along the x axys
-```
+"""
 function plot_Ttest(df, var; xlims = (0,2))
     tt = Ttest_drugs(df, var)
     res = collect_Ttest(tt)

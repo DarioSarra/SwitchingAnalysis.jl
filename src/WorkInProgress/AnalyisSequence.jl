@@ -1,4 +1,4 @@
-include("filtering.jl");
+include.(["filtering.jl","TtestFuns.jl","MixedModelsFuns.jl","PlotsFuns.jl"]);
 using Dates
 gr(size=(600,600), tick_orientation = :out, grid = false,
     linecolor = :black,

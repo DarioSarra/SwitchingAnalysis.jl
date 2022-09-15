@@ -1,11 +1,11 @@
-```
-    run linear mixed model to explain 'var' as a linear function of Protocol
-    only on 'df' data belonging to 'treatment'. The value "Control" is used for general behavior.
+"""
+    run linear mixed model to explain `var` as a linear function of Protocol
+    only on `df` data belonging to `treatment`. The value "Control" is used for general behavior.
     To test it performs MixedModels.likelihoodratiotest between
-    'var' ~ 1 + (1|MouseID)
-    'var' ~ 1 + Protocol + (1|MouseID)
+    `var` ~ 1 + (1|MouseID)
+    `var` ~ 1 + Protocol + (1|MouseID)
     returns full model and likelihood ratio test
-```
+"""
 
 function test_perprotocol(df,var, treatment)
     df0 = filter(r-> r.Treatment == treatment , df)
@@ -18,21 +18,21 @@ function test_perprotocol(df,var, treatment)
     MixedModels.likelihoodratiotest(m0, m1), m1
 end
 
-```
+"""
     test_drugs(df,var)
-    run linear mixed model to explain 'var' as a linear function of Protocol and
+    run linear mixed model to explain `var` as a linear function of Protocol and
     Treatment. Control data are collapsed and treatment are categorical
 
     To test QUANTITATIVE EFFECTS it performs MixedModels.likelihoodratiotest between
-    'var' ~ 1 + Protocol + (1|MouseID)
-    'var' ~ 1 + Protocol + Treatment + (1|MouseID)'
+    `var` ~ 1 + Protocol + (1|MouseID)
+    `var` ~ 1 + Protocol + Treatment + (1|MouseID)`
 
     To test QUALITATIVE EFFECTS it performs MixedModels.likelihoodratiotest between
-    'var' ~ 1 + Protocol + Treatment + (1|MouseID)'
-    'var' ~ 1 + Protocol * Treatment + (1|MouseID)'
+    `var` ~ 1 + Protocol + Treatment + (1|MouseID)`
+    `var` ~ 1 + Protocol * Treatment + (1|MouseID)`
 
     returns models and likelihood ratio tests in ascending order of parameters
-```
+"""
 
 function test_drugs(df,var)
     df1 = transform(df, var => :Y)
