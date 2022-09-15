@@ -1,5 +1,6 @@
 const mac_gdrive = "/Volumes/GoogleDrive/My Drive"
-const linux_gdrive = "/home/beatriz/mainen.flipping.5ht@gmail.com"
+# const linux_gdrive = "/home/beatriz/mainen.flipping.5ht@gmail.com"
+const linux_gdrive = "/home/beatriz/dario.sarra@neuro.fchampalimaud.org"
 const files_dir = "Flipping/Datasets/Pharmacology/SwitchingData/Results"
 const figs_dir = "Flipping/Datasets/Pharmacology/SwitchingData/Results/figures/"
 

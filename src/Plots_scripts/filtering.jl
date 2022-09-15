@@ -16,10 +16,9 @@ files_loc = joinpath(ongoing_dir,files_dir)
 figs_loc = joinpath(ongoing_dir,figs_dir)
 fullS =  CSV.read(joinpath(files_loc,"streaks.csv"), DataFrame; types = columns_types)
 fullP =  CSV.read(joinpath(files_loc,"pokes.csv"), DataFrame)
-gr(size=(600,600), tick_orientation = :out, grid = false, linecolor = :black,
-markerstrokecolor = :black)
+gr(size=(600,600), tick_orientation = :out, grid = false, linecolor = :black,markerstrokecolor = :black)
 ## removing irrelevant events and computes relevant variables for pokes dataframe
-
+##
 # turning Protocol from Float to string to allow for categorical analysis
 fullP[!,:Protocol] = [ismissing(x) ? missing : string(x) for x in fullP[:,:Protocol]]
 # remove short pokes and pass reward to the next poke in a trial
@@ -72,6 +71,9 @@ gd3 = groupby(pokes,[:Protocol])
 combine(gd3) do dd
     dd[:,:CumRewTrial] = dd[:,:CumRewTrial]./maximum(dd.CumRewTrial)
 end
+union(pokes.Phase)
+union(fullP.Phase)
+
 checkstim = combine(groupby(pokes,[:MouseID,:ExpDay]), :Stim => (s -> length(union(s)) > 1) => :StimDay)
 checkstim[!,:StimDay] = [m in ["pc10", "pc1", "pc2", "pc3", "pc4", "pc5", "pc6", "pc7", "pc8", "pc9"] ? s : false for (m,s) in zip(checkstim.MouseID, checkstim.StimDay)]
 expanded = leftjoin(pokes, checkstim, on = [:MouseID,:ExpDay]).StimDay
@@ -98,7 +100,8 @@ for df in [pokes, streaks]
         df)
     df[df.Phase .== "training", :Treatment] .= "Training"
     df[df.Treatment .== "PreVehicle",:Treatment] .= "Control"
-    df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Treatment] =
+    salineANDopto_data = (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
+    df[salineANDopto_data,:Treatment] =
         [o ? "Optogenetic" : "Control" for o in df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Stim]]
     df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
     df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
