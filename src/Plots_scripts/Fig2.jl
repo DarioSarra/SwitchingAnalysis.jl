@@ -4,9 +4,9 @@ include("filtering.jl");
 Df = Prew(1:20)
 Protocol_colors!(Df)
 @df Df plot(:Poke, :Prew,
-    group = :env, linecolor = :color)
+    group = :Protocol, linecolor = :color)
 @df Df scatter!(:Poke, :Prew,
-    group = :env, color = :color)
+    group = :Protocol, color = :color)
 savefig(joinpath(figs_loc,"Fig2/A_ProtocolsDecay.pdf"))
 
 ## Rewards per trial
