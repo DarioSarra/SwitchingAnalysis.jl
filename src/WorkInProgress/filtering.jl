@@ -95,7 +95,7 @@ for df in [pokes, streaks]
     filter!(r->
         # r.Treatment in list &&
         r.Day != Date(2016,07,13) &&
-        r.Trial < 51 &&
+        # r.Trial < 51 &&
         r.MouseID != "pc7",
         df)
     df[df.Phase .== "training", :Treatment] .= "Training"
@@ -106,7 +106,6 @@ for df in [pokes, streaks]
     df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
     df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
     df[!,:Treatment] = categorical(df.Treatment, ordered = false)
-    df.Protocol = parse.(Float64, df.Protocol)
     levels!(df.Treatment,[
         "Training",
         "None",
@@ -121,6 +120,7 @@ for df in [pokes, streaks]
         "Methysergide",
         "SB242084_opt",
     ])
+    df.Protocol = parse.(Float64, df.Protocol)
 end
 ##
 # filter!(r-> r.Num_pokes >= 3, streaks)
