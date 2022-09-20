@@ -3,8 +3,8 @@ module SwitchingAnalysis
 using Reexport
 @reexport using DataFrames, CSV, CategoricalArrays, Random, Dates
 @reexport using Statistics, StatsBase,Plots, StatsPlots, KernelDensity, HypothesisTests
-@reexport using GLM, MixedModels
-@reexport using StandardizedPredictors
+@reexport using MixedModels, GLM
+@reexport using StandardizedPredictors, Effects
 @reexport using Survival
 
 using Distributions

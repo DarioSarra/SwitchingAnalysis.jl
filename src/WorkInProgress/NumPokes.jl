@@ -79,12 +79,26 @@ MixedModels.likelihoodratiotest(SRE_m1, SRE_m2)
         - main effect of Way
         - NO main effect of SB_Opto
 =#
-## Altanserin
-list = ["Altanserin","Control"]
-test_df = filter(r->r.Phase in list && r.Treatment in list,streaks)
-# All Random Effects (ARE)
-ALT_m0 = fit!(LinearMixedModel(@formula(Num_pokes ~ 1 + Protocol + (1+Protocol|MouseID)),test_df; contrasts))
-ALT_m1 = fit!(LinearMixedModel(@formula(Num_pokes ~ 1 + Protocol + Treatment + (1+Protocol+Treatment|MouseID)),test_df; contrasts))
-ALT_m2 = fit!(LinearMixedModel(@formula(Num_pokes ~ 1 + Protocol * Treatment + (1+Protocol+Treatment|MouseID)),test_df; contrasts))
-MixedModels.likelihoodratiotest(ALT_m0, ALT_m1)
-MixedModels.likelihoodratiotest(ALT_m1, ALT_m2)
+## EFFECTS plots
+using Effects
+#= there are two ways to make it work:
+- 1 is to compute the prediction for a set of values. This uses effect(Dict,Model)
+    the Dict has to have keys corresponding to the model factors and the entry is a vector of value of interest
+    vectors don't have to be the same length. effect will automatically cross the values
+-2 effect!(DataFrame,Model) overwrite the column you want to predict directly on a copy of the DataFrame
+=#
+unique(test_df.Treatment)
+design = Dict(:Treatment => unique(test_df.Treatment),
+        :Protocol => unique(test_df.Protocol))
+eff_feed = effects(design,SRE_m2)
+Drug_colors!(eff_feed)
+open_html_table(eff_feed)
+@df eff_feed plot(:Protocol,:Num_pokes, ribbon = :err,
+    group = :Treatment, color = :color, linecolor = :color,
+    legend = :outertop, fillalpha = 0.3,
+    legendfont = Plots.Font("sans-serif", 4, :hcenter, :vcenter, 0.0, RGB(0.0,0.0,0.0)))
+
+
+eff_df = copy(test_df[:MouseID,:Protocol,:Treatment,])
+effects!(eff_df,SRE_m2)
+open_html_table(eff_df[1:100,:])
