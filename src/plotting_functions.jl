@@ -24,6 +24,28 @@ function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mouse
     return with_err
 end
 
+function summarize_xy(df0, xvar, yvar, group = nothing, err = :MouseID; kwargs...)
+    mean_grouping = isnothing(group) ? [xvar] : vcat(xvar,group)
+    err_grouping = vcat(mean_grouping,err)
+    df1 = combine(groupby(df0,err_grouping), yvar => mean => yvar)
+    df2 = combine(groupby(df1,mean_grouping), yvar .=> [mean, sem] .=> [:Mean, :SEM])
+    try
+        Drug_colors!(df2)
+    catch e
+        println(e)
+        df2[!,:color] .= RGB(0.0,0.0,0.0)
+    end
+    dropnan!(df2)
+
+    if isnothing(group)
+        return @df df2 plot(:Trial, :Mean, ribbon = :SEM,
+            color = :color, linecolor = :color, kwargs...)
+    else
+        return @df df2 plot(:Trial, :Mean, ribbon = :SEM, group = cols(group),
+            color = :color, linecolor = :color, kwargs...)
+    end
+end
+
 function StatsBase.ecdf(dd::AbstractDataFrame,Xvar::Symbol; Err = :MouseID, mode = :sem)
     common_xaxis = ecdf(dd[:,Xvar]).sorted_values #new
     pre_err = combine(groupby(dd, Err)) do df

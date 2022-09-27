@@ -21,7 +21,7 @@ export mediansurvival_analysis, survivalrate_algorythm, hazardrate_algorythm, fu
 export KDensity, trim_dist, trim_dist!
 export ODC, calculate_odc
 export Likelyhood_Ratio_test
-export summarize, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw, plot_wilcoxon_odc, plot_odc, odc_regression, plot_deltafromrew, plot_QODC
+export summarize, summarize_xy, effect_size, MVT, MVT_scatter, plot_wilcoxon, WebersLaw, plot_wilcoxon_odc, plot_odc, odc_regression, plot_deltafromrew, plot_QODC
 export MVTprediction, testMVT_AvLeave, testMVT_Prot, plotMVT_AvLeave, plotMVT_Prot
 
 include("constants.jl")

@@ -188,3 +188,22 @@ f = filter(r-> r.variable == "Protocol(centered: 0.75) & Treatment: Optogenetic"
 
 
 predict(ESRE_m2)
+##
+Alt = filter(r -> r.Phase == "Altanserin", streaks)
+xvar = :Trial
+yvar = :Num_pokes
+group = :Treatment
+err = :MouseID
+mean_grouping = vcat(xvar,group)
+err_grouping = vcat(mean_grouping,err)
+
+
+df0 = combine(groupby(Alt,err_grouping), yvar => mean => yvar)
+df1 = combine(groupby(df0,mean_grouping), yvar .=> [mean, sem] .=> [:Mean, :SEM])
+Drug_colors!(df1)
+dropnan!(df1)
+@df df1 plot(:Trial, :Mean, ribbon = :SEM, group = :Treatment,
+    color = :color, linecolor = :color, xgrid = true, xticks = 0:5:100, xrotation = 45)
+##
+summarize_xy(Alt,:Trial,:Num_pokes, group = :Treatment; xgrid = true)
+summarize_xy(Alt,:Trial,:Num_pokes)
