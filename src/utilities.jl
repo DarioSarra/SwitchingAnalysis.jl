@@ -35,7 +35,7 @@ end
 
 function dropnan!(df::AbstractDataFrame,
                       cols=:)
-    delete!(df, (!).(complete_vals(df, cols)))
+    deleteat!(df, (!).(complete_vals(df, cols)))
     df
 end
 
@@ -107,7 +107,7 @@ end
 function trim_conf_ints!(df::AbstractDataFrame,x::Symbol; mode = :extrema, percent = 95)
     v = df[:,x]
     idxs = trim_conf_ints(v; mode = mode, percent = percent)
-    delete!(df,Not(idxs))
+    deleteat!(df,Not(idxs))
 end
 
 function jump_missing(v::AbstractVector)
