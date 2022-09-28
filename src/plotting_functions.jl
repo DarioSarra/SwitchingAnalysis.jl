@@ -24,7 +24,7 @@ function summarize(dd::AbstractDataFrame,Xvar::Symbol,Yvar::Symbol; Err = :Mouse
     return with_err
 end
 
-function summarize_xy(df0, xvar, yvar, group = nothing, err = :MouseID; kwargs...)
+function summarize_xy(df0, xvar, yvar; group = nothing, err = :MouseID, kwargs...)
     mean_grouping = isnothing(group) ? [xvar] : vcat(xvar,group)
     err_grouping = vcat(mean_grouping,err)
     df1 = combine(groupby(df0,err_grouping), yvar => mean => yvar)
@@ -38,11 +38,11 @@ function summarize_xy(df0, xvar, yvar, group = nothing, err = :MouseID; kwargs..
     dropnan!(df2)
 
     if isnothing(group)
-        return @df df2 plot(:Trial, :Mean, ribbon = :SEM,
-            color = :color, linecolor = :color, kwargs...)
+        return @df df2 plot(cols(xvar), :Mean, ribbon = :SEM,
+            color = :color, linecolor = :color; kwargs...)
     else
-        return @df df2 plot(:Trial, :Mean, ribbon = :SEM, group = cols(group),
-            color = :color, linecolor = :color, kwargs...)
+        return @df df2 plot(cols(xvar), :Mean, ribbon = :SEM, group = cols(group),
+            color = :color, linecolor = :color; kwargs...)
     end
 end
 

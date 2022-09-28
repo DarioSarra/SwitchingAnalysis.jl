@@ -18,8 +18,8 @@ const drug_colors = Dict(
     "SB242084_opt" => RGB(0.765,0.01,0.01),
     "training" => RGB(0.498,0.498,0.498),
     "PreVehicle" => RGB(0.498,0.498,0.498),
-    "PostVehicle" => RGB(0.498,0.498,0.498),
-    "Saline" => RGB(0.498,0.498,0.498),
+    "PostVehicle" => RGB(209/255, 235/255, 212/255), #RGB(0.498,0.498,0.498),
+    "Saline" => RGB(209/255, 211/255, 235/255), #RGB(0.498,0.498,0.498),
     "None" => RGB(0.498,0.498,0.498),
     )
 const protocol_colors = Dict(

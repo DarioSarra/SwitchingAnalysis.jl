@@ -94,7 +94,7 @@ end
 for df in [pokes, streaks]
     filter!(r->
         # r.Treatment in list &&
-        r.Day != Date(2016,07,13) &&
+        r.Day != Date(2016,07,13) && #Day 6 of training for Opto before weekend break
         # r.Trial < 51 &&
         r.MouseID != "pc7",
         df)
@@ -102,7 +102,7 @@ for df in [pokes, streaks]
     df[df.Treatment .== "PreVehicle",:Treatment] .= "Control"
     salineANDopto_data = (df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic")
     df[salineANDopto_data,:Treatment] =
-        [o ? "Optogenetic" : "Control" for o in df[(df.Treatment .== "Saline") .& (df.Phase .== "Optogenetic"),:Stim]]
+        [o ? "Optogenetic" : "Control" for o in df[salineANDopto_data,:Stim]]
     df[df.Treatment .== "SB242084_opt",:Phase] .=  "SB242084_opt"
     df[df.Treatment .== "SB242084_opt",:Treatment] = [o ? "SB242084_opt" : "Control" for o in df[df.Treatment .== "SB242084_opt",:Stim]]
     df[!,:Treatment] = categorical(df.Treatment, ordered = false)
