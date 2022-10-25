@@ -9,42 +9,43 @@ transform!(groupby(streaks,[:MouseID,:Day]),
     :Start_trial => (x-> round.((x .- x[1])./60,digits = 0) ) => :Trial_Begin)
 ## Number of pokes
 Alt = filter(r -> r.Phase == "Altanserin", streaks)
+SB = filter(r -> r.Phase == "SB242084", streaks)
+Way = filter(r -> r.Phase == "Way_100135", streaks)
+Cit = filter(r -> r.Phase == "Citalopram", streaks)
+Opto = filter(r -> r.Phase == "Optogenetic", streaks)
+Met = filter(r -> r.Phase == "Methysergide", streaks)
+SB_Opt = filter(r -> r.Phase == "SB242084_opt", streaks)
+##
 summarize_xy(Alt,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","AltNumPokes.pdf"))
 ##
-SB = filter(r -> r.Phase == "SB242084", streaks)
 summarize_xy(SB,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","SBNumPokes.pdf"))
 ##
-Way = filter(r -> r.Phase == "Way_100135", streaks)
 summarize_xy(Way,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","WayNumPokes.pdf"))
 ##
-Cit = filter(r -> r.Phase == "Citalopram", streaks)
 summarize_xy(Cit,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","CitNumPokes.pdf"))
 ##
-Opto = filter(r -> r.Phase == "Optogenetic", streaks)
 summarize_xy(Opto,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","OptoNumPokes.pdf"))
 ##
-Met = filter(r -> r.Phase == "Methysergide", streaks)
 summarize_xy(Met,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)
 savefig(joinpath(figs_loc,"Ongoing2022","MetNumPokes.pdf"))
 ##
-SB_Opt = filter(r -> r.Phase == "SB242084_opt", streaks)
 summarize_xy(SB_Opt,:Trial,:Num_pokes; group = :Treatment,
     xlabel = "Trial", ylabel = "# Pokes", ylims = (0,25),
     left_margin = -40px, bottom_margin = -40px)

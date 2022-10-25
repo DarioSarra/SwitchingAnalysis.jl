@@ -1,5 +1,5 @@
 include.(["filtering.jl","TtestFuns.jl","MixedModelsFuns.jl","PlotsFuns.jl"]);
-using Dates
+using Dates, Revise
 gr(size=(600,600), tick_orientation = :out, grid = false,
     linecolor = :black,
     markerstrokecolor = :black,
@@ -27,7 +27,6 @@ contrasts = Dict(
         - main effect of Way
         - NO main effect of SB_Opto
 =#
-println.(unique(streaks.Day))
 list = ["SB242084","Altanserin","Way_100135",
     "Optogenetic","Citalopram","Methysergide",
     "SB242084_opt","Control"]
@@ -136,22 +135,84 @@ f = filter(r-> r.variable == "Protocol(centered: 0.75) & Treatment: Optogenetic"
 
 
 predict(ESRE_m2)
+## By Treatment
+m = @formula(Num_pokes ~ 1 + Protocol * Treatment +
+    (1|MouseID)+(Protocol|MouseID)+(Treatment|MouseID) + (Protocol&Treatment|MouseID))
+Alt = filter(r -> r.Phase == "Altanserin" && r.Treatment != "None", streaks)
+SB = filter(r -> r.Phase == "SB242084" && r.Treatment != "None", streaks)
+Way = filter(r -> r.Phase == "Way_100135" && r.Treatment != "None", streaks)
+Cit = filter(r -> r.Phase == "Citalopram" && r.Treatment != "None", streaks)
+Opto = filter(r -> r.Phase == "Optogenetic" && r.Treatment != "None", streaks)
+Met = filter(r -> r.Phase == "Methysergide" && r.Treatment != "None", streaks)
+SBOpt = filter(r -> r.Phase == "SB242084_opt" && r.Treatment != "None", streaks)
 ##
-Alt = filter(r -> r.Phase == "Altanserin", streaks)
-xvar = :Trial
-yvar = :Num_pokes
-group = :Treatment
-err = :MouseID
-mean_grouping = vcat(xvar,group)
-err_grouping = vcat(mean_grouping,err)
-
-
-df0 = combine(groupby(Alt,err_grouping), yvar => mean => yvar)
-df1 = combine(groupby(df0,mean_grouping), yvar .=> [mean, sem] .=> [:Mean, :SEM])
-Drug_colors!(df1)
-dropnan!(df1)
-@df df1 plot(:Trial, :Mean, ribbon = :SEM, group = :Treatment,
-    color = :color, linecolor = :color, xgrid = true, xticks = 0:5:100, xrotation = 45)
+Alt_plt_np, Alt_eff_np, Alt_mod_np = plot_effects(Alt,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+Alt_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","Alt_Eff_NumPokes.pdf"))
 ##
-summarize_xy(Alt,:Trial,:Num_pokes, group = :Treatment; xgrid = true)
-summarize_xy(Alt,:Trial,:Num_pokes)
+SB_plt_np, SB_eff_np, SB_mod_np = plot_effects(SB,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+SB_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","SB_Eff_NumPokes.pdf"))
+##
+Way_plt_np, Way_eff_np, Way_mod_np = plot_effects(Way,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    mmarkersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+Way_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","Way_Eff_NumPokes.pdf"))
+##
+Opto_plt_np, Opto_eff_np, Opto_mod_np = plot_effects(Opto,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+Opto_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","Opto_Eff_NumPokes.pdf"))
+##
+Cit_plt_np, Cit_eff_np, Cit_mod_np = plot_effects(Cit,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+Cit_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","Cit_Eff_NumPokes.pdf"))
+##
+Met_plt_np, Met_eff_np, Met_mod_np = plot_effects(Met,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+Met_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","Met_Eff_NumPokes.pdf"))
+##
+SBOpt_plt_np, SBOpt_eff_np, SBOpt_mod_np = plot_effects(SBOpt,:Num_pokes,:Protocol,:Treatment,
+    :MouseID,contrasts; ylims = (0,17), legend = :bottomright,
+    xticks = ([0.5,0.75,1.0], ["Poor", "Medium", "Rich"]), xlims = (0.3,1.2),
+    ylabel = "Predicted # Pokes", left_margin = -20px, bottom_margin = -20px,
+    markersize = 5, markeralpha = 0.6, markerstrokewidth = 0.4)
+SBOpt_plt_np
+savefig(joinpath(figs_loc,"Ongoing2022","SBOpt_Eff_NumPokes.pdf"))
+##
+plot_model_estimates(Alt_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","Alt_Coeff_NumPokes.pdf"))
+plot_model_estimates(SB_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","SB_Coeff_NumPokes.pdf"))
+plot_model_estimates(Way_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","Way_Coeff_NumPokes.pdf"))
+plot_model_estimates(Opto_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","Opto_Coeff_NumPokes.pdf"))
+plot_model_estimates(Cit_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","Cit_Coeff_NumPokes.pdf"))
+plot_model_estimates(Met_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","Met_Coeff_NumPokes.pdf"))
+plot_model_estimates(SBOpt_mod_np)
+savefig(joinpath(figs_loc,"Ongoing2022","SBOpt_Coeff_NumPokes.pdf"))

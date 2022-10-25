@@ -36,7 +36,7 @@ function summarize_xy(df0, xvar, yvar; group = nothing, err = :MouseID, kwargs..
         df2[!,:color] .= RGB(0.0,0.0,0.0)
     end
     dropnan!(df2)
-
+    sort!(df2,xvar)
     if isnothing(group)
         return @df df2 plot(cols(xvar), :Mean, ribbon = :SEM,
             color = :color, linecolor = :color; kwargs...)

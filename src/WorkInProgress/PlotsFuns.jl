@@ -61,13 +61,13 @@ end
     calls function Ttest_drugs to perform a Ttest on `var` for each drug in df
     then plots the results in a scatter with drugs along the x axys
 """
-function plot_Ttest(df, var; xlims = (0,2))
+function plot_Ttest(df, var; kwargs...)
     tt = Ttest_drugs(df, var)
     res = collect_Ttest(tt)
     Drug_colors!(res)
     plt = @df res scatter(:Treatment, :Mean, yerror = :CI,
         color = :color, legend = false,
-        xlabel = "Treatment", xlims = xlims)
+        xlabel = "Treatment"; kwargs...)
         Plots.abline!(0,0,color = :black, linestyle = :dash)
     show(plt)
     return plt, res
